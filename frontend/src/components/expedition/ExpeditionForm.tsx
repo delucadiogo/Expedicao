@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -12,6 +12,19 @@ import { Plus, Trash2 } from 'lucide-react';
 import { ExpeditionStatus, Product, CreateExpeditionDTO } from '@/types/expedition';
 import ProductDialog from './ProductDialog';
 import ProductList from './ProductList';
+import { driverService } from '@/lib/api';
+import { Driver } from '@/types/driver';
+import { transportCompanyService } from '@/lib/api';
+import { TransportCompany } from '@/types/transportCompany';
+import { supplierService } from '@/lib/api';
+import { Supplier } from '@/types/supplier';
+import { expeditionResponsibleService } from '@/lib/api';
+import { ExpeditionResponsible } from '@/types/expeditionResponsible';
+import { Combobox } from '@/components/ui/combobox';
+import { truckService } from '@/lib/api';
+import { Truck } from '@/types/truck';
+import { qualityResponsibleService } from '@/lib/api';
+import { QualityResponsible } from '@/types/qualityResponsible';
 
 const formSchema = z.object({
   expeditionNumber: z.string().min(1, 'Número da expedição é obrigatório'),
@@ -42,6 +55,86 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [productToEdit, setProductToEdit] = useState<Product | undefined>();
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [transportCompanies, setTransportCompanies] = useState<TransportCompany[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [expeditionResponsibles, setExpeditionResponsibles] = useState<ExpeditionResponsible[]>([]);
+  const [trucks, setTrucks] = useState<Truck[]>([]);
+  const [qualityResponsibles, setQualityResponsibles] = useState<QualityResponsible[]>([]);
+
+  useEffect(() => {
+    const fetchDrivers = async () => {
+      try {
+        const data = await driverService.getAll();
+        setDrivers(data);
+      } catch (error) {
+        console.error('Erro ao carregar motoristas:', error);
+      }
+    };
+    fetchDrivers();
+  }, []);
+
+  useEffect(() => {
+    const fetchTransportCompanies = async () => {
+      try {
+        const data = await transportCompanyService.getAll();
+        setTransportCompanies(data);
+      } catch (error) {
+        console.error('Erro ao carregar empresas de transporte:', error);
+      }
+    };
+    fetchTransportCompanies();
+  }, []);
+
+  useEffect(() => {
+    const fetchSuppliers = async () => {
+      try {
+        const data = await supplierService.getAll();
+        setSuppliers(data);
+      } catch (error) {
+        console.error('Erro ao carregar fornecedores:', error);
+      }
+    };
+    fetchSuppliers();
+  }, []);
+
+  useEffect(() => {
+    const fetchExpeditionResponsibles = async () => {
+      try {
+        const data = await expeditionResponsibleService.getAll();
+        setExpeditionResponsibles(data);
+      } catch (error) {
+        console.error('Erro ao carregar responsáveis de expedição:', error);
+      }
+    };
+    fetchExpeditionResponsibles();
+  }, []);
+
+  useEffect(() => {
+    const fetchTrucks = async () => {
+      try {
+        console.log('Tentando carregar caminhões...');
+        const data = await truckService.getAll();
+        console.log('Caminhões carregados:', data);
+        setTrucks(data);
+      } catch (error) {
+        console.error('Erro ao carregar caminhões:', error);
+      }
+    };
+    fetchTrucks();
+  }, []);
+
+  useEffect(() => {
+    const fetchQualityResponsibles = async () => {
+      try {
+        const data = await qualityResponsibleService.getAll();
+        setQualityResponsibles(data);
+      } catch (error) {
+        console.error('Erro ao carregar responsáveis de qualidade:', error);
+      }
+    };
+    fetchQualityResponsibles();
+  }, []);
 
   const generateExpeditionNumber = useCallback(() => {
     const date = new Date();
@@ -133,6 +226,36 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
     setProducts(products.filter((p) => p.id !== product.id));
   };
 
+  const handleTransportCompanyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const companyName = e.target.value;
+    form.setValue('transportCompany', companyName);
+
+    const matchedCompany = transportCompanies.find(company =>
+      company.name.toLowerCase() === companyName.toLowerCase()
+    );
+
+    if (matchedCompany) {
+      form.setValue('transportCompany', matchedCompany.name);
+    } else {
+      // Opcional: Limpar campos relacionados se não houver correspondência exata
+    }
+  };
+
+  const handleSupplierNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.value;
+    form.setValue('supplierName', name);
+
+    const matchedSuppliers = suppliers.filter(supplier =>
+      supplier.name.toLowerCase().includes(name.toLowerCase())
+    );
+
+    if (matchedSuppliers.length === 1) {
+      form.setValue('supplierDocument', matchedSuppliers[0].document);
+    } else {
+      form.setValue('supplierDocument', '');
+    }
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -171,7 +294,14 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                   <FormItem>
                     <FormLabel>Placa do Caminhão</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Combobox
+                        options={trucks.map(truck => ({ label: truck.plate, value: truck.plate }))}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="Selecione a placa..."
+                        displayField="label"
+                        valueField="value"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -185,7 +315,18 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                   <FormItem>
                     <FormLabel>Nome do Motorista</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Combobox
+                        options={drivers.map(driver => ({ label: driver.name, value: driver.name }))}
+                        value={field.value}
+                        onValueChange={(selectedValue) => {
+                          field.onChange(selectedValue);
+                          const selectedDriver = drivers.find(d => d.name === selectedValue);
+                          form.setValue('driverDocument', selectedDriver ? selectedDriver.document : '');
+                        }}
+                        placeholder="Selecione o motorista..."
+                        displayField="label"
+                        valueField="value"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -199,7 +340,7 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                   <FormItem>
                     <FormLabel>Documento do Motorista</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} readOnly />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -213,7 +354,14 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                   <FormItem>
                     <FormLabel>Empresa de Transporte</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Combobox
+                        options={transportCompanies.map(company => ({ label: company.name, value: company.name }))}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="Selecione a empresa..."
+                        displayField="label"
+                        valueField="value"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -236,7 +384,18 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                   <FormItem>
                     <FormLabel>Nome do Fornecedor</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Combobox
+                        options={suppliers.map(supplier => ({ label: supplier.name, value: supplier.name }))}
+                        value={field.value}
+                        onValueChange={(selectedValue) => {
+                          field.onChange(selectedValue);
+                          const selectedSupplier = suppliers.find(s => s.name === selectedValue);
+                          form.setValue('supplierDocument', selectedSupplier ? selectedSupplier.document : '');
+                        }}
+                        placeholder="Selecione o fornecedor..."
+                        displayField="label"
+                        valueField="value"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -250,22 +409,22 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                   <FormItem>
                     <FormLabel>CNPJ do Fornecedor</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} readOnly />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader>
+      <Card>
+        <CardHeader>
             <CardTitle>Responsável</CardTitle>
-          </CardHeader>
+        </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="expeditionResponsible"
@@ -273,7 +432,18 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                   <FormItem>
                     <FormLabel>Nome do Responsável</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Combobox
+                        options={expeditionResponsibles.map(responsible => ({ label: responsible.name, value: responsible.name }))}
+                        value={field.value}
+                        onValueChange={(selectedValue) => {
+                          field.onChange(selectedValue);
+                          const selectedResponsible = expeditionResponsibles.find(r => r.name === selectedValue);
+                          form.setValue('responsiblePosition', selectedResponsible ? selectedResponsible.position : '');
+                        }}
+                        placeholder="Selecione o responsável..."
+                        displayField="label"
+                        valueField="value"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -287,7 +457,7 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                   <FormItem>
                     <FormLabel>Cargo/Setor</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} readOnly />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -299,32 +469,36 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
 
       <Card>
         <CardHeader>
-            <div className="flex items-center justify-between">
-          <CardTitle>Produtos</CardTitle>
-                  <Button
-                    type="button"
-                onClick={() => setIsProductDialogOpen(true)}
-                  >
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Produto
-                  </Button>
-            </div>
-          </CardHeader>
+            <CardTitle>Produtos da Expedição</CardTitle>
+        </CardHeader>
           <CardContent>
-            <ProductList
-              products={products}
-              onEdit={handleEditProduct}
-              onDelete={handleDeleteProduct}
-            />
-          </CardContent>
-        </Card>
+          <Button type="button" onClick={() => setIsProductDialogOpen(true)} className="mb-4">
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar Produto
+          </Button>
+          <ProductList products={products} onEdit={handleEditProduct} onDelete={handleDeleteProduct} />
 
-        <Card>
-          <CardHeader>
+          <ProductDialog
+              open={isProductDialogOpen}
+              onOpenChange={(open) => {
+                setIsProductDialogOpen(open);
+                if (!open) {
+                  setProductToEdit(undefined);
+                }
+              }}
+              onSubmit={handleAddProduct}
+              product={productToEdit}
+          />
+
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
             <CardTitle>Controle de Qualidade</CardTitle>
-          </CardHeader>
+        </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="qualityControl.responsibleName"
@@ -332,7 +506,18 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                   <FormItem>
                     <FormLabel>Responsável</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Combobox
+                        options={qualityResponsibles.map(responsible => ({ label: responsible.name, value: responsible.name }))}
+                        value={field.value}
+                        onValueChange={(selectedValue) => {
+                          field.onChange(selectedValue);
+                          const selectedResponsible = qualityResponsibles.find(r => r.name === selectedValue);
+                          form.setValue('qualityControl.digitalSignature', selectedResponsible ? selectedResponsible.digitalSignature : '');
+                        }}
+                        placeholder="Selecione o responsável da qualidade..."
+                        displayField="label"
+                        valueField="value"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -344,9 +529,9 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                 name="qualityControl.approvalStatus"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel>Status de Aprovação</FormLabel>
                     <FormControl>
-                      <Input {...field} value="pendente" readOnly />
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -374,7 +559,7 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                   <FormItem>
                     <FormLabel>Assinatura Digital</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} readOnly />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -385,7 +570,7 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                 control={form.control}
                 name="qualityControl.observations"
                 render={({ field }) => (
-                  <FormItem className="md:col-span-2">
+                  <FormItem>
                     <FormLabel>Observações</FormLabel>
                     <FormControl>
                       <Textarea {...field} />
@@ -394,24 +579,14 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                   </FormItem>
                 )}
               />
-            </div>
+          </div>
         </CardContent>
       </Card>
 
-      <div className="flex justify-end space-x-4">
-          <Button type="button" variant="outline" onClick={() => form.reset()}>
-            Limpar
-        </Button>
-          <Button type="submit">Salvar</Button>
-      </div>
-
-        <ProductDialog
-          open={isProductDialogOpen}
-          onOpenChange={setIsProductDialogOpen}
-          product={productToEdit}
-          onSubmit={handleAddProduct}
-        />
-    </form>
+      <Button type="submit" className="w-full">
+          Criar Expedição
+      </Button>
+      </form>
     </Form>
   );
 }
