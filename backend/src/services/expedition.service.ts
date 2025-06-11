@@ -6,11 +6,54 @@ export class ExpeditionService {
   // Obter todas as expedições
   async getAll(): Promise<Expedition[]> {
     const query = `
-      SELECT 
-        e.*,
-        json_agg(p.*) as products,
-        qc.*,
-        r.*
+      SELECT
+        e.id,
+        e.expedition_number AS "expeditionNumber",
+        e.date_time AS "dateTime",
+        e.status,
+        e.truck_plate AS "truckPlate",
+        e.driver_name AS "driverName",
+        e.driver_document AS "driverDocument",
+        e.transport_company AS "transportCompany",
+        e.supplier_name AS "supplierName",
+        e.supplier_document AS "supplierDocument",
+        e.expedition_responsible AS "expeditionResponsible",
+        e.responsible_position AS "responsiblePosition",
+        json_agg(
+            json_build_object(
+                'id', p.id,
+                'name', p.name,
+                'code', p.code,
+                'quantity', p.quantity,
+                'unit', p.unit,
+                'batch', p.batch,
+                'expiryDate', p.expiry_date,
+                'status', p.status,
+                'observations', p.observations
+            ) ORDER BY p.id
+        ) FILTER (WHERE p.id IS NOT NULL) AS products,
+        json_build_object(
+            'responsibleName', qc.responsible_name,
+            'analysisDateTime', qc.analysis_date_time,
+            'approvalStatus', qc.approval_status,
+            'justification', qc.justification,
+            'digitalSignature', qc.digital_signature,
+            'observations', qc.observations
+        ) AS "qualityControl",
+        json_build_object(
+            'reason', r.reason,
+            'sentToSupplies', r.sent_to_supplies,
+            'suppliesDateTime', r.supplies_date_time,
+            'suppliesResponsible', r.supplies_responsible,
+            'cargoRetained', r.cargo_retained,
+            'retainedQuantity', r.retained_quantity,
+            'retentionLocation', r.retention_location,
+            'correctiveActions', r.corrective_actions
+        ) AS rejection,
+        e.created_at AS "createdAt",
+        e.updated_at AS "updatedAt",
+        e.created_by AS "createdBy",
+        e.updated_by AS "updatedBy"
       FROM expeditions e
       LEFT JOIN products p ON p.expedition_id = e.id
       LEFT JOIN quality_control qc ON qc.expedition_id = e.id
@@ -48,11 +91,54 @@ export class ExpeditionService {
   // Obter expedição por ID
   async getById(id: string): Promise<Expedition | null> {
     const query = `
-      SELECT 
-        e.*,
-        json_agg(p.*) as products,
-        qc.*,
-        r.*
+      SELECT
+        e.id,
+        e.expedition_number AS "expeditionNumber",
+        e.date_time AS "dateTime",
+        e.status,
+        e.truck_plate AS "truckPlate",
+        e.driver_name AS "driverName",
+        e.driver_document AS "driverDocument",
+        e.transport_company AS "transportCompany",
+        e.supplier_name AS "supplierName",
+        e.supplier_document AS "supplierDocument",
+        e.expedition_responsible AS "expeditionResponsible",
+        e.responsible_position AS "responsiblePosition",
+        json_agg(
+            json_build_object(
+                'id', p.id,
+                'name', p.name,
+                'code', p.code,
+                'quantity', p.quantity,
+                'unit', p.unit,
+                'batch', p.batch,
+                'expiryDate', p.expiry_date,
+                'status', p.status,
+                'observations', p.observations
+            ) ORDER BY p.id
+        ) FILTER (WHERE p.id IS NOT NULL) AS products,
+        json_build_object(
+            'responsibleName', qc.responsible_name,
+            'analysisDateTime', qc.analysis_date_time,
+            'approvalStatus', qc.approval_status,
+            'justification', qc.justification,
+            'digitalSignature', qc.digital_signature,
+            'observations', qc.observations
+        ) AS "qualityControl",
+        json_build_object(
+            'reason', r.reason,
+            'sentToSupplies', r.sent_to_supplies,
+            'suppliesDateTime', r.supplies_date_time,
+            'suppliesResponsible', r.supplies_responsible,
+            'cargoRetained', r.cargo_retained,
+            'retainedQuantity', r.retained_quantity,
+            'retentionLocation', r.retention_location,
+            'correctiveActions', r.corrective_actions
+        ) AS rejection,
+        e.created_at AS "createdAt",
+        e.updated_at AS "updatedAt",
+        e.created_by AS "createdBy",
+        e.updated_by AS "updatedBy"
       FROM expeditions e
       LEFT JOIN products p ON p.expedition_id = e.id
       LEFT JOIN quality_control qc ON qc.expedition_id = e.id
