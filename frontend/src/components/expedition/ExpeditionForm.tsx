@@ -169,6 +169,7 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    console.log('Tentando criar expedição...');
     try {
       const expeditionData: CreateExpeditionDTO = {
         expeditionNumber: values.expeditionNumber,
@@ -208,11 +209,14 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
   };
 
   const handleAddProduct = (product: Product) => {
+    let updatedProducts;
     if (productToEdit) {
-      setProducts(products.map((p) => (p.id === product.id ? product : p)));
+      updatedProducts = products.map((p) => (p.id === product.id ? product : p));
     } else {
-      setProducts([...products, { ...product, id: Date.now().toString() }]);
+      updatedProducts = [...products, { ...product, id: Date.now().toString() }];
     }
+    setProducts(updatedProducts);
+    form.setValue('products', updatedProducts);
     setProductToEdit(undefined);
     setIsProductDialogOpen(false);
   };
@@ -223,7 +227,9 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
   };
 
   const handleDeleteProduct = (product: Product) => {
-    setProducts(products.filter((p) => p.id !== product.id));
+    const updatedProducts = products.filter((p) => p.id !== product.id);
+    setProducts(updatedProducts);
+    form.setValue('products', updatedProducts);
   };
 
   const handleTransportCompanyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -477,6 +483,10 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
               Adicionar Produto
           </Button>
           <ProductList products={products} onEdit={handleEditProduct} onDelete={handleDeleteProduct} />
+
+          {form.formState.errors.products && (
+            <FormMessage>{form.formState.errors.products.message}</FormMessage>
+          )}
 
           <ProductDialog
               open={isProductDialogOpen}

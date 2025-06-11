@@ -36,7 +36,7 @@ export default function ProductForm({ product, onSubmit, onCancel }: ProductForm
       unit: product?.unit || '',
       batch: product?.batch || '',
       expiryDate: product?.expiryDate || '',
-      status: product?.status || '',
+      status: product?.status || 'a_verificar',
       observations: product?.observations || '',
     },
   });
@@ -116,9 +116,10 @@ export default function ProductForm({ product, onSubmit, onCancel }: ProductForm
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="aprovado">Aprovado</SelectItem>
-                    <SelectItem value="rejeitado">Rejeitado</SelectItem>
-                    <SelectItem value="retido">Retido</SelectItem>
+                    <SelectItem value="novo">Novo</SelectItem>
+                    <SelectItem value="usado">Usado</SelectItem>
+                    <SelectItem value="danificado">Danificado</SelectItem>
+                    <SelectItem value="a_verificar">A verificar</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
