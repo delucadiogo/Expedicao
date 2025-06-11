@@ -25,19 +25,24 @@ export class ExpeditionService {
 
   // Obter estatísticas das expedições
   async getStats(): Promise<ExpeditionStats> {
-    const query = `
-      SELECT 
-        COUNT(*) as total,
-        COUNT(CASE WHEN status = 'pendente' THEN 1 END) as pending,
-        COUNT(CASE WHEN status = 'em_analise' THEN 1 END) as in_analysis,
-        COUNT(CASE WHEN status = 'aprovado' THEN 1 END) as approved,
-        COUNT(CASE WHEN status = 'rejeitado' THEN 1 END) as rejected,
-        COUNT(CASE WHEN status = 'retido' THEN 1 END) as retained
-      FROM expeditions
-    `;
+    try {
+      const query = `
+        SELECT 
+          CAST(COUNT(*) AS INTEGER) as total,
+          CAST(COUNT(CASE WHEN status = 'pendente' THEN 1 END) AS INTEGER) as pending,
+          CAST(COUNT(CASE WHEN status = 'em_analise' THEN 1 END) AS INTEGER) as in_analysis,
+          CAST(COUNT(CASE WHEN status = 'aprovado' THEN 1 END) AS INTEGER) as approved,
+          CAST(COUNT(CASE WHEN status = 'rejeitado' THEN 1 END) AS INTEGER) as rejected,
+          CAST(COUNT(CASE WHEN status = 'retido' THEN 1 END) AS INTEGER) as retained
+        FROM expeditions
+      `;
 
-    const result = await pool.query(query);
-    return result.rows[0];
+      const result = await pool.query(query);
+      return result.rows[0];
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas no service:', error); // Log detalhado
+      throw error;
+    }
   }
 
   // Obter expedição por ID
@@ -75,9 +80,9 @@ export class ExpeditionService {
         INSERT INTO expeditions (
           id, expedition_number, date_time, status,
           truck_plate, driver_name, driver_document, transport_company,
-          expedition_responsible, responsible_position, supplier_name,
+          expedition_responsible, responsible_position, supplier_name, supplier_document,
           created_at, updated_at, created_by
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
         RETURNING *
       `;
 
@@ -93,9 +98,10 @@ export class ExpeditionService {
         data.expeditionResponsible,
         data.responsiblePosition,
         data.supplierName,
+        data.supplierDocument,
         now,
         now,
-        data.createdBy
+        data.createdBy || 'system'
       ];
 
       const expeditionResult = await client.query(expeditionQuery, expeditionValues);
@@ -115,7 +121,7 @@ export class ExpeditionService {
             expeditionId,
             product.name,
             product.code,
-            product.quantity,
+            Number(product.quantity),
             product.unit,
             product.batch,
             product.expiryDate,
@@ -166,7 +172,7 @@ export class ExpeditionService {
           data.rejection.suppliesDateTime,
           data.rejection.suppliesResponsible,
           data.rejection.cargoRetained,
-          data.rejection.retainedQuantity,
+          Number(data.rejection.retainedQuantity),
           data.rejection.retentionLocation,
           data.rejection.correctiveActions
         ];
@@ -219,13 +225,20 @@ export class ExpeditionService {
         `;
 
         updateValues.push(id);
-        await client.query(updateQuery, updateValues);
+        const result = await client.query(updateQuery, updateValues);
+
+        if ((result.rowCount ?? 0) === 0) {
+          return null;
+        }
+
+        return this.getById(id);
       }
 
       // Atualizar produtos se fornecidos
       if (data.products) {
         // Remover produtos existentes
-        await client.query('DELETE FROM products WHERE expedition_id = $1', [id]);
+        const deleteProductsQuery = 'DELETE FROM products WHERE expedition_id = $1';
+        await client.query(deleteProductsQuery, [id]);
 
         // Inserir novos produtos
         const productQuery = `
@@ -241,7 +254,7 @@ export class ExpeditionService {
             id,
             product.name,
             product.code,
-            product.quantity,
+            Number(product.quantity),
             product.unit,
             product.batch,
             product.expiryDate,
@@ -255,7 +268,7 @@ export class ExpeditionService {
 
       // Atualizar controle de qualidade se fornecido
       if (data.qualityControl) {
-        const qualityControlQuery = `
+        const updateQualityControlQuery = `
           UPDATE quality_control
           SET 
             responsible_name = $1,
@@ -277,14 +290,36 @@ export class ExpeditionService {
           id
         ];
 
-        await client.query(qualityControlQuery, qualityControlValues);
+        const result = await client.query(updateQualityControlQuery, qualityControlValues);
+
+        if ((result.rowCount ?? 0) === 0) {
+          const insertQualityControlQuery = `
+            INSERT INTO quality_control (
+              id, expedition_id, responsible_name, analysis_date_time,
+              approval_status, justification, digital_signature, observations
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          `;
+
+          const insertQualityControlValues = [
+            uuidv4(),
+            id,
+            data.qualityControl.responsibleName,
+            data.qualityControl.analysisDateTime,
+            data.qualityControl.approvalStatus,
+            data.qualityControl.justification,
+            data.qualityControl.digitalSignature,
+            data.qualityControl.observations
+          ];
+
+          await client.query(insertQualityControlQuery, insertQualityControlValues);
+        }
       }
 
       // Atualizar rejeição se fornecida
       if (data.rejection) {
-        const rejectionQuery = `
+        const updateRejectionQuery = `
           UPDATE rejections
-          SET 
+          SET
             reason = $1,
             sent_to_supplies = $2,
             supplies_date_time = $3,
@@ -302,13 +337,38 @@ export class ExpeditionService {
           data.rejection.suppliesDateTime,
           data.rejection.suppliesResponsible,
           data.rejection.cargoRetained,
-          data.rejection.retainedQuantity,
+          Number(data.rejection.retainedQuantity),
           data.rejection.retentionLocation,
           data.rejection.correctiveActions,
           id
         ];
 
-        await client.query(rejectionQuery, rejectionValues);
+        const result = await client.query(updateRejectionQuery, rejectionValues);
+
+        if ((result.rowCount ?? 0) === 0) {
+          const insertRejectionQuery = `
+            INSERT INTO rejections (
+              id, expedition_id, reason, sent_to_supplies,
+              supplies_date_time, supplies_responsible, cargo_retained,
+              retained_quantity, retention_location, corrective_actions
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          `;
+
+          const insertRejectionValues = [
+            uuidv4(),
+            id,
+            data.rejection.reason,
+            data.rejection.sentToSupplies,
+            data.rejection.suppliesDateTime,
+            data.rejection.suppliesResponsible,
+            data.rejection.cargoRetained,
+            Number(data.rejection.retainedQuantity),
+            data.rejection.retentionLocation,
+            data.rejection.correctiveActions
+          ];
+
+          await client.query(insertRejectionQuery, insertRejectionValues);
+        }
       }
 
       await client.query('COMMIT');
@@ -433,7 +493,7 @@ export class ExpeditionService {
         rejectionData.suppliesDateTime,
         rejectionData.suppliesResponsible,
         rejectionData.cargoRetained,
-        rejectionData.retainedQuantity,
+        Number(rejectionData.retainedQuantity),
         rejectionData.retentionLocation,
         rejectionData.correctiveActions,
         id

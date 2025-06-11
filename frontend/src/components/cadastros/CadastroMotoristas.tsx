@@ -1,93 +1,117 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft, Plus, Edit, Trash2 } from 'lucide-react';
-
-interface Motorista {
-  id: string;
-  nome: string;
-  documento: string;
-  telefone: string;
-  email: string;
-  cnh: string;
-  validadeCnh: string;
-}
+import { driverService } from '@/lib/api';
+import { Driver, CreateDriverDTO, UpdateDriverDTO } from '@/types/driver';
+import { useToast } from '@/hooks/use-toast';
 
 interface CadastroMotoristasProps {
   onBack: () => void;
 }
 
 const CadastroMotoristas: React.FC<CadastroMotoristasProps> = ({ onBack }) => {
-  const [motoristas, setMotoristas] = useState<Motorista[]>([
-    {
-      id: '1',
-      nome: 'João Silva',
-      documento: '123.456.789-10',
-      telefone: '(11) 99999-9999',
-      email: 'joao@email.com',
-      cnh: '12345678901',
-      validadeCnh: '2025-12-31'
-    }
-  ]);
-  
+  const [motoristas, setMotoristas] = useState<Driver[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    nome: '',
-    documento: '',
-    telefone: '',
+  const [formData, setFormData] = useState<CreateDriverDTO | UpdateDriverDTO>({
+    name: '',
+    document: '',
+    phone: '',
     email: '',
     cnh: '',
-    validadeCnh: ''
+    cnhExpirationDate: ''
   });
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (editingId) {
-      setMotoristas(prev => prev.map(m => 
-        m.id === editingId ? { ...formData, id: editingId } : m
-      ));
-    } else {
-      const newMotorista: Motorista = {
-        ...formData,
-        id: Date.now().toString()
-      };
-      setMotoristas(prev => [...prev, newMotorista]);
+  const loadMotoristas = async () => {
+    try {
+      const data = await driverService.getAll();
+      setMotoristas(data);
+    } catch (error) {
+      console.error('Erro ao carregar motoristas:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível carregar os motoristas.',
+        variant: 'destructive',
+      });
     }
-    
-    resetForm();
   };
 
-  const handleEdit = (motorista: Motorista) => {
+  useEffect(() => {
+    loadMotoristas();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingId) {
+        await driverService.update(editingId, formData as UpdateDriverDTO);
+        toast({
+          title: 'Sucesso',
+          description: 'Motorista atualizado com sucesso.',
+        });
+      } else {
+        await driverService.create(formData as CreateDriverDTO);
+        toast({
+          title: 'Sucesso',
+          description: 'Motorista cadastrado com sucesso.',
+        });
+      }
+      resetForm();
+      loadMotoristas();
+    } catch (error) {
+      console.error('Erro ao salvar motorista:', error);
+      toast({
+        title: 'Erro',
+        description: `Não foi possível ${editingId ? 'atualizar' : 'cadastrar'} o motorista. Verifique os dados.`, 
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleEdit = (motorista: Driver) => {
     setFormData({
-      nome: motorista.nome,
-      documento: motorista.documento,
-      telefone: motorista.telefone,
+      name: motorista.name,
+      document: motorista.document,
+      phone: motorista.phone,
       email: motorista.email,
       cnh: motorista.cnh,
-      validadeCnh: motorista.validadeCnh
+      cnhExpirationDate: motorista.cnhExpirationDate
     });
     setEditingId(motorista.id);
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
-    setMotoristas(prev => prev.filter(m => m.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      await driverService.delete(id);
+      toast({
+        title: 'Sucesso',
+        description: 'Motorista excluído com sucesso.',
+      });
+      loadMotoristas();
+    } catch (error) {
+      console.error('Erro ao deletar motorista:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível excluir o motorista.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const resetForm = () => {
     setFormData({
-      nome: '',
-      documento: '',
-      telefone: '',
+      name: '',
+      document: '',
+      phone: '',
       email: '',
       cnh: '',
-      validadeCnh: ''
+      cnhExpirationDate: ''
     });
     setEditingId(null);
     setShowForm(false);
@@ -104,7 +128,10 @@ const CadastroMotoristas: React.FC<CadastroMotoristasProps> = ({ onBack }) => {
             </Button>
             <h1 className="text-2xl font-bold">Cadastro de Motoristas</h1>
           </div>
-          <Button onClick={() => setShowForm(true)}>
+          <Button onClick={() => {
+            resetForm();
+            setShowForm(true);
+          }}>
             <Plus className="h-4 w-4 mr-2" />
             Novo Motorista
           </Button>
@@ -119,30 +146,30 @@ const CadastroMotoristas: React.FC<CadastroMotoristasProps> = ({ onBack }) => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="nome">Nome Completo</Label>
+                    <Label htmlFor="name">Nome Completo</Label>
                     <Input
-                      id="nome"
-                      value={formData.nome}
-                      onChange={(e) => setFormData({...formData, nome: e.target.value})}
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
                       required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="documento">CPF</Label>
+                    <Label htmlFor="document">CPF</Label>
                     <Input
-                      id="documento"
-                      value={formData.documento}
-                      onChange={(e) => setFormData({...formData, documento: e.target.value})}
+                      id="document"
+                      value={formData.document}
+                      onChange={(e) => setFormData({...formData, document: e.target.value})}
                       placeholder="000.000.000-00"
                       required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="telefone">Telefone</Label>
+                    <Label htmlFor="phone">Telefone</Label>
                     <Input
-                      id="telefone"
-                      value={formData.telefone}
-                      onChange={(e) => setFormData({...formData, telefone: e.target.value})}
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
                       placeholder="(00) 00000-0000"
                     />
                   </div>
@@ -165,12 +192,12 @@ const CadastroMotoristas: React.FC<CadastroMotoristasProps> = ({ onBack }) => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="validadeCnh">Validade da CNH</Label>
+                    <Label htmlFor="cnhExpirationDate">Validade da CNH</Label>
                     <Input
-                      id="validadeCnh"
+                      id="cnhExpirationDate"
                       type="date"
-                      value={formData.validadeCnh}
-                      onChange={(e) => setFormData({...formData, validadeCnh: e.target.value})}
+                      value={formData.cnhExpirationDate}
+                      onChange={(e) => setFormData({...formData, cnhExpirationDate: e.target.value})}
                       required
                     />
                   </div>
@@ -207,12 +234,12 @@ const CadastroMotoristas: React.FC<CadastroMotoristasProps> = ({ onBack }) => {
               <TableBody>
                 {motoristas.map((motorista) => (
                   <TableRow key={motorista.id}>
-                    <TableCell className="font-medium">{motorista.nome}</TableCell>
-                    <TableCell>{motorista.documento}</TableCell>
-                    <TableCell>{motorista.telefone}</TableCell>
+                    <TableCell className="font-medium">{motorista.name}</TableCell>
+                    <TableCell>{motorista.document}</TableCell>
+                    <TableCell>{motorista.phone}</TableCell>
                     <TableCell>{motorista.cnh}</TableCell>
                     <TableCell>
-                      {new Date(motorista.validadeCnh).toLocaleDateString('pt-BR')}
+                      {new Date(motorista.cnhExpirationDate).toLocaleDateString('pt-BR')}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">

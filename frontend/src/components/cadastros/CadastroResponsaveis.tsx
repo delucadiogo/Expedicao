@@ -1,88 +1,116 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft, Plus, Edit, Trash2 } from 'lucide-react';
-
-interface Responsavel {
-  id: string;
-  nome: string;
-  cargo: string;
-  setor: string;
-  email: string;
-  telefone: string;
-}
+import { toast } from 'sonner';
+import { QualityResponsible, CreateQualityResponsibleDTO, UpdateQualityResponsibleDTO } from '@/types/qualityResponsible';
+import { qualityResponsibleService } from '@/lib/api';
 
 interface CadastroResponsaveisProps {
   onBack: () => void;
 }
 
 const CadastroResponsaveis: React.FC<CadastroResponsaveisProps> = ({ onBack }) => {
-  const [responsaveis, setResponsaveis] = useState<Responsavel[]>([
-    {
-      id: '1',
-      nome: 'Maria Santos',
-      cargo: 'Supervisor de Expedição',
-      setor: 'Logística',
-      email: 'maria@oliveira.com',
-      telefone: '(11) 2222-2222'
-    }
-  ]);
-  
+  const [qualityResponsibles, setQualityResponsibles] = useState<QualityResponsible[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    nome: '',
-    cargo: '',
-    setor: '',
+  const [formData, setFormData] = useState<CreateQualityResponsibleDTO>({
+    name: '',
+    position: '',
+    sector: '',
     email: '',
-    telefone: ''
+    phone: '',
+    digitalSignature: ''
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (editingId) {
-      setResponsaveis(prev => prev.map(r => 
-        r.id === editingId ? { ...formData, id: editingId } : r
-      ));
-    } else {
-      const newResponsavel: Responsavel = {
-        ...formData,
-        id: Date.now().toString()
-      };
-      setResponsaveis(prev => [...prev, newResponsavel]);
+  const fetchResponsibles = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await qualityResponsibleService.getAll();
+      setQualityResponsibles(data);
+    } catch (err) {
+      console.error("Erro ao buscar responsáveis da qualidade:", err);
+      setError("Não foi possível carregar os responsáveis da qualidade.");
+      toast.error("Erro", { description: "Não foi possível carregar os responsáveis da qualidade." });
+    } finally {
+      setIsLoading(false);
     }
-    
-    resetForm();
   };
 
-  const handleEdit = (responsavel: Responsavel) => {
+  useEffect(() => {
+    fetchResponsibles();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      if (editingId) {
+        await qualityResponsibleService.update(editingId, formData);
+        toast.success("Sucesso", { description: "Responsável da qualidade atualizado com sucesso!" });
+      } else {
+        await qualityResponsibleService.create(formData);
+        toast.success("Sucesso", { description: "Responsável da qualidade cadastrado com sucesso!" });
+      }
+      fetchResponsibles(); // Recarrega a lista
+      resetForm();
+    } catch (err) {
+      console.error("Erro ao salvar responsável da qualidade:", err);
+      setError("Não foi possível salvar o responsável da qualidade.");
+      toast.error("Erro", { description: "Não foi possível salvar o responsável da qualidade." });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEdit = (responsavel: QualityResponsible) => {
     setFormData({
-      nome: responsavel.nome,
-      cargo: responsavel.cargo,
-      setor: responsavel.setor,
-      email: responsavel.email,
-      telefone: responsavel.telefone
+      name: responsavel.name,
+      position: responsavel.position,
+      sector: responsavel.sector,
+      email: responsavel.email || '',
+      phone: responsavel.phone || '',
+      digitalSignature: responsavel.digitalSignature || ''
     });
     setEditingId(responsavel.id);
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
-    setResponsaveis(prev => prev.filter(r => r.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Tem certeza que deseja deletar este responsável?")) {
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    try {
+      await qualityResponsibleService.delete(id);
+      toast.success("Sucesso", { description: "Responsável da qualidade deletado com sucesso!" });
+      fetchResponsibles(); // Recarrega a lista
+    } catch (err) {
+      console.error("Erro ao deletar responsável da qualidade:", err);
+      setError("Não foi possível deletar o responsável da qualidade.");
+      toast.error("Erro", { description: "Não foi possível deletar o responsável da qualidade." });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const resetForm = () => {
     setFormData({
-      nome: '',
-      cargo: '',
-      setor: '',
+      name: '',
+      position: '',
+      sector: '',
       email: '',
-      telefone: ''
+      phone: '',
+      digitalSignature: ''
     });
     setEditingId(null);
     setShowForm(false);
@@ -97,9 +125,9 @@ const CadastroResponsaveis: React.FC<CadastroResponsaveisProps> = ({ onBack }) =
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar
             </Button>
-            <h1 className="text-2xl font-bold">Cadastro de Responsáveis de Expedição</h1>
+            <h1 className="text-2xl font-bold">Cadastro de Responsáveis da Qualidade</h1>
           </div>
-          <Button onClick={() => setShowForm(true)}>
+          <Button onClick={() => setShowForm(true)} disabled={isLoading}>
             <Plus className="h-4 w-4 mr-2" />
             Novo Responsável
           </Button>
@@ -114,29 +142,29 @@ const CadastroResponsaveis: React.FC<CadastroResponsaveisProps> = ({ onBack }) =
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="nome">Nome Completo</Label>
+                    <Label htmlFor="name">Nome Completo</Label>
                     <Input
-                      id="nome"
-                      value={formData.nome}
-                      onChange={(e) => setFormData({...formData, nome: e.target.value})}
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
                       required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="cargo">Cargo</Label>
+                    <Label htmlFor="position">Cargo</Label>
                     <Input
-                      id="cargo"
-                      value={formData.cargo}
-                      onChange={(e) => setFormData({...formData, cargo: e.target.value})}
+                      id="position"
+                      value={formData.position}
+                      onChange={(e) => setFormData({...formData, position: e.target.value})}
                       required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="setor">Setor</Label>
+                    <Label htmlFor="sector">Setor</Label>
                     <Input
-                      id="setor"
-                      value={formData.setor}
-                      onChange={(e) => setFormData({...formData, setor: e.target.value})}
+                      id="sector"
+                      value={formData.sector}
+                      onChange={(e) => setFormData({...formData, sector: e.target.value})}
                       required
                     />
                   </div>
@@ -147,23 +175,30 @@ const CadastroResponsaveis: React.FC<CadastroResponsaveisProps> = ({ onBack }) =
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="telefone">Telefone</Label>
+                    <Label htmlFor="phone">Telefone</Label>
                     <Input
-                      id="telefone"
-                      value={formData.telefone}
-                      onChange={(e) => setFormData({...formData, telefone: e.target.value})}
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="digitalSignature">Assinatura Digital</Label>
+                    <Input
+                      id="digitalSignature"
+                      value={formData.digitalSignature}
+                      onChange={(e) => setFormData({...formData, digitalSignature: e.target.value})}
                     />
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <Button type="submit">
+                  <Button type="submit" disabled={isLoading}>
                     {editingId ? 'Atualizar' : 'Cadastrar'}
                   </Button>
-                  <Button type="button" variant="outline" onClick={resetForm}>
+                  <Button type="button" variant="outline" onClick={resetForm} disabled={isLoading}>
                     Cancelar
                   </Button>
                 </div>
@@ -172,52 +207,61 @@ const CadastroResponsaveis: React.FC<CadastroResponsaveisProps> = ({ onBack }) =
           </Card>
         )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Responsáveis Cadastrados ({responsaveis.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Cargo</TableHead>
-                  <TableHead>Setor</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {responsaveis.map((responsavel) => (
-                  <TableRow key={responsavel.id}>
-                    <TableCell className="font-medium">{responsavel.nome}</TableCell>
-                    <TableCell>{responsavel.cargo}</TableCell>
-                    <TableCell>{responsavel.setor}</TableCell>
-                    <TableCell>{responsavel.email}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(responsavel)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(responsavel.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+        {isLoading && <p>Carregando responsáveis...</p>}
+        {error && <p className="text-red-500">{error}</p>}
+
+        {!isLoading && !error && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Responsáveis Cadastrados ({qualityResponsibles.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Cargo</TableHead>
+                    <TableHead>Setor</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Assinatura Digital</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                </TableHeader>
+                <TableBody>
+                  {qualityResponsibles.map((responsavel) => (
+                    <TableRow key={responsavel.id}>
+                      <TableCell className="font-medium">{responsavel.name}</TableCell>
+                      <TableCell>{responsavel.position}</TableCell>
+                      <TableCell>{responsavel.sector}</TableCell>
+                      <TableCell>{responsavel.email}</TableCell>
+                      <TableCell>{responsavel.digitalSignature}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(responsavel)}
+                            disabled={isLoading}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(responsavel.id)}
+                            disabled={isLoading}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

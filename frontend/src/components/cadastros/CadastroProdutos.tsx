@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,86 +6,113 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft, Plus, Edit, Trash2 } from 'lucide-react';
-
-interface Produto {
-  id: string;
-  nome: string;
-  codigo: string;
-  categoria: string;
-  unidade: string;
-  descricao: string;
-}
+import { productCatalogService } from '@/lib/api';
+import { ProductCatalog, CreateProductCatalogDTO, UpdateProductCatalogDTO } from '@/types/productCatalog';
+import { useToast } from '@/hooks/use-toast';
 
 interface CadastroProdutosProps {
   onBack: () => void;
 }
 
 const CadastroProdutos: React.FC<CadastroProdutosProps> = ({ onBack }) => {
-  const [produtos, setProdutos] = useState<Produto[]>([
-    {
-      id: '1',
-      nome: 'Produto Eletrônico',
-      codigo: 'ELE001',
-      categoria: 'Eletrônicos',
-      unidade: 'UN',
-      descricao: 'Componente eletrônico para equipamentos'
-    }
-  ]);
-  
+  const [produtos, setProdutos] = useState<ProductCatalog[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    nome: '',
-    codigo: '',
-    categoria: '',
-    unidade: '',
-    descricao: ''
+  const [formData, setFormData] = useState<CreateProductCatalogDTO | UpdateProductCatalogDTO>({
+    name: '',
+    code: '',
+    category: '',
+    unit: '',
+    description: ''
   });
+  const { toast } = useToast();
 
-  const categorias = ['Eletrônicos', 'Industrial', 'Alimentício', 'Químico', 'Textil', 'Outro'];
+  const categorias = ['Eletrônicos', 'Industrial', 'Alimentício', 'Químico', 'Têxtil', 'Outro'];
   const unidades = ['UN', 'KG', 'L', 'M', 'M²', 'M³', 'CX', 'PCT'];
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (editingId) {
-      setProdutos(prev => prev.map(p => 
-        p.id === editingId ? { ...formData, id: editingId } : p
-      ));
-    } else {
-      const newProduto: Produto = {
-        ...formData,
-        id: Date.now().toString()
-      };
-      setProdutos(prev => [...prev, newProduto]);
+  const loadProdutos = async () => {
+    try {
+      const data = await productCatalogService.getAll();
+      setProdutos(data);
+    } catch (error) {
+      console.error('Erro ao carregar produtos do catálogo:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível carregar os produtos do catálogo.',
+        variant: 'destructive',
+      });
     }
-    
-    resetForm();
   };
 
-  const handleEdit = (produto: Produto) => {
+  useEffect(() => {
+    loadProdutos();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingId) {
+        await productCatalogService.update(editingId, formData as UpdateProductCatalogDTO);
+        toast({
+          title: 'Sucesso',
+          description: 'Produto atualizado com sucesso.',
+        });
+      } else {
+        await productCatalogService.create(formData as CreateProductCatalogDTO);
+        toast({
+          title: 'Sucesso',
+          description: 'Produto cadastrado com sucesso.',
+        });
+      }
+      resetForm();
+      loadProdutos();
+    } catch (error) {
+      console.error('Erro ao salvar produto:', error);
+      toast({
+        title: 'Erro',
+        description: `Não foi possível ${editingId ? 'atualizar' : 'cadastrar'} o produto. Verifique os dados.`, 
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleEdit = (produto: ProductCatalog) => {
     setFormData({
-      nome: produto.nome,
-      codigo: produto.codigo,
-      categoria: produto.categoria,
-      unidade: produto.unidade,
-      descricao: produto.descricao
+      name: produto.name,
+      code: produto.code,
+      category: produto.category,
+      unit: produto.unit,
+      description: produto.description,
     });
     setEditingId(produto.id);
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
-    setProdutos(prev => prev.filter(p => p.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      await productCatalogService.delete(id);
+      toast({
+        title: 'Sucesso',
+        description: 'Produto excluído com sucesso.',
+      });
+      loadProdutos();
+    } catch (error) {
+      console.error('Erro ao deletar produto:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível excluir o produto.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const resetForm = () => {
     setFormData({
-      nome: '',
-      codigo: '',
-      categoria: '',
-      unidade: '',
-      descricao: ''
+      name: '',
+      code: '',
+      category: '',
+      unit: '',
+      description: ''
     });
     setEditingId(null);
     setShowForm(false);
@@ -103,7 +129,10 @@ const CadastroProdutos: React.FC<CadastroProdutosProps> = ({ onBack }) => {
             </Button>
             <h1 className="text-2xl font-bold">Cadastro de Produtos</h1>
           </div>
-          <Button onClick={() => setShowForm(true)}>
+          <Button onClick={() => {
+            resetForm();
+            setShowForm(true);
+          }}>
             <Plus className="h-4 w-4 mr-2" />
             Novo Produto
           </Button>
@@ -118,26 +147,26 @@ const CadastroProdutos: React.FC<CadastroProdutosProps> = ({ onBack }) => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="nome">Nome do Produto</Label>
+                    <Label htmlFor="name">Nome do Produto</Label>
                     <Input
-                      id="nome"
-                      value={formData.nome}
-                      onChange={(e) => setFormData({...formData, nome: e.target.value})}
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
                       required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="codigo">Código/SKU</Label>
+                    <Label htmlFor="code">Código/SKU</Label>
                     <Input
-                      id="codigo"
-                      value={formData.codigo}
-                      onChange={(e) => setFormData({...formData, codigo: e.target.value})}
+                      id="code"
+                      value={formData.code}
+                      onChange={(e) => setFormData({...formData, code: e.target.value})}
                       required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="categoria">Categoria</Label>
-                    <Select value={formData.categoria} onValueChange={(value) => setFormData({...formData, categoria: value})}>
+                    <Label htmlFor="category">Categoria</Label>
+                    <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione uma categoria" />
                       </SelectTrigger>
@@ -149,8 +178,8 @@ const CadastroProdutos: React.FC<CadastroProdutosProps> = ({ onBack }) => {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="unidade">Unidade</Label>
-                    <Select value={formData.unidade} onValueChange={(value) => setFormData({...formData, unidade: value})}>
+                    <Label htmlFor="unit">Unidade</Label>
+                    <Select value={formData.unit} onValueChange={(value) => setFormData({...formData, unit: value})}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione uma unidade" />
                       </SelectTrigger>
@@ -162,11 +191,11 @@ const CadastroProdutos: React.FC<CadastroProdutosProps> = ({ onBack }) => {
                     </Select>
                   </div>
                   <div className="md:col-span-2">
-                    <Label htmlFor="descricao">Descrição</Label>
+                    <Label htmlFor="description">Descrição</Label>
                     <Input
-                      id="descricao"
-                      value={formData.descricao}
-                      onChange={(e) => setFormData({...formData, descricao: e.target.value})}
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
                     />
                   </div>
                 </div>
@@ -201,10 +230,10 @@ const CadastroProdutos: React.FC<CadastroProdutosProps> = ({ onBack }) => {
               <TableBody>
                 {produtos.map((produto) => (
                   <TableRow key={produto.id}>
-                    <TableCell className="font-medium">{produto.nome}</TableCell>
-                    <TableCell>{produto.codigo}</TableCell>
-                    <TableCell>{produto.categoria}</TableCell>
-                    <TableCell>{produto.unidade}</TableCell>
+                    <TableCell className="font-medium">{produto.name}</TableCell>
+                    <TableCell>{produto.code}</TableCell>
+                    <TableCell>{produto.category}</TableCell>
+                    <TableCell>{produto.unit}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
                         <Button

@@ -71,22 +71,22 @@ export function useExpedition() {
     try {
       setLoading(true);
       setError(null);
-      const expedition: Expedition = {
+      const expeditionData: CreateExpeditionDTO = {
         ...data,
-        id: crypto.randomUUID(),
         expeditionNumber: data.expeditionNumber || generateExpeditionNumber(),
-        status: 'pendente' as ExpeditionStatus,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        updatedBy: 'user.system',
+        status: data.status || 'pendente',
+        dateTime: data.dateTime || new Date().toISOString(),
+        createdBy: data.createdBy || 'user.system',
       };
-      setExpeditions(prev => [...prev, expedition]);
-      updateStats([...expeditions, expedition]);
+
+      const newExpedition = await expeditionService.create(expeditionData);
+      setExpeditions(prev => [...prev, newExpedition]);
+      updateStats([...expeditions, newExpedition]);
       toast({
         title: 'Sucesso',
         description: 'Expedição criada com sucesso',
       });
-      return expedition;
+      return newExpedition;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar expedição');
       toast({
@@ -98,7 +98,7 @@ export function useExpedition() {
     } finally {
       setLoading(false);
     }
-  }, [expeditions, generateExpeditionNumber]);
+  }, [expeditions, generateExpeditionNumber, toast]);
 
   // Atualizar expedição
   const updateExpedition = useCallback(async (id: string, data: UpdateExpeditionDTO) => {

@@ -13,23 +13,21 @@ export interface Product {
 }
 
 export interface QualityControl {
-  id: string;
-  responsible: string;
+  responsibleName: string;
   analysisDateTime?: string;
-  approvalStatus: string;
+  approvalStatus: 'aprovado' | 'rejeitado' | 'pendente';
   justification?: string;
   digitalSignature?: string;
   observations?: string;
 }
 
 export interface Rejection {
-  id: string;
   reason: string;
   sentToSupplies: boolean;
   suppliesDateTime?: string;
   suppliesResponsible?: string;
   cargoRetained: boolean;
-  retainedQuantity?: string;
+  retainedQuantity?: number;
   retentionLocation?: string;
   correctiveActions?: string;
   responsible: string;
@@ -77,13 +75,11 @@ export interface CreateExpeditionDTO {
   expeditionResponsible: string;
   responsiblePosition?: string;
   products: Product[];
-  status: string;
-  qualityControl: {
-    id: string;
-    responsible: string;
-    approvalStatus: string;
-  };
+  status: ExpeditionStatus;
+  qualityControl: QualityControl;
+  rejection?: Rejection;
   dateTime: string;
+  createdBy?: string;
 }
 
 export type UpdateExpeditionDTO = Partial<Omit<Expedition, 'id' | 'createdAt' | 'updatedAt' | 'updatedBy'>> & {

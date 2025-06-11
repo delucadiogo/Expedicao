@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -9,11 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Trash2 } from 'lucide-react';
-import { ExpeditionStatus, Product } from '@/types/expedition';
+import { ExpeditionStatus, Product, CreateExpeditionDTO } from '@/types/expedition';
 import ProductDialog from './ProductDialog';
 import ProductList from './ProductList';
 
 const formSchema = z.object({
+  expeditionNumber: z.string().min(1, 'Número da expedição é obrigatório'),
   truckPlate: z.string().min(1, 'Placa é obrigatória'),
   driverName: z.string().min(1, 'Nome do motorista é obrigatório'),
   driverDocument: z.string().min(1, 'Documento do motorista é obrigatório'),
@@ -24,8 +25,8 @@ const formSchema = z.object({
   responsiblePosition: z.string().optional(),
   products: z.array(z.any()).min(1, 'Pelo menos um produto é obrigatório'),
   qualityControl: z.object({
-    responsible: z.string().min(1, 'Responsável é obrigatório'),
-    approvalStatus: z.string().min(1, 'Status é obrigatório'),
+    responsibleName: z.string().min(1, 'Responsável é obrigatório'),
+    approvalStatus: z.enum(['aprovado', 'rejeitado', 'pendente']),
     justification: z.string().optional(),
     digitalSignature: z.string().optional(),
     observations: z.string().optional(),
@@ -42,9 +43,19 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [productToEdit, setProductToEdit] = useState<Product | undefined>();
 
+  const generateExpeditionNumber = useCallback(() => {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    return `EXP-${year}${month}${day}-${random}`;
+  }, []);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      expeditionNumber: generateExpeditionNumber(),
       truckPlate: '',
       driverName: '',
       driverDocument: '',
@@ -55,7 +66,7 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
       responsiblePosition: '',
       products: [],
       qualityControl: {
-        responsible: '',
+        responsibleName: '',
         approvalStatus: 'pendente',
         justification: '',
         digitalSignature: '',
@@ -66,15 +77,33 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const expeditionData = {
-        ...values,
-        status: 'pendente' as ExpeditionStatus,
+      const expeditionData: CreateExpeditionDTO = {
+        expeditionNumber: values.expeditionNumber,
+        truckPlate: values.truckPlate,
+        driverName: values.driverName,
+        driverDocument: values.driverDocument,
+        transportCompany: values.transportCompany,
+        supplierName: values.supplierName,
+        supplierDocument: values.supplierDocument,
+        expeditionResponsible: values.expeditionResponsible,
+        responsiblePosition: values.responsiblePosition,
+        products: products,
+        status: 'pendente',
+        qualityControl: {
+          responsibleName: values.qualityControl.responsibleName,
+          approvalStatus: values.qualityControl.approvalStatus,
+          justification: values.qualityControl.justification,
+          digitalSignature: values.qualityControl.digitalSignature,
+          observations: values.qualityControl.observations,
+        },
         dateTime: new Date().toISOString(),
-        products,
       };
 
       await createExpedition(expeditionData);
-      form.reset();
+      form.reset({
+        ...form.getValues(),
+        expeditionNumber: generateExpeditionNumber(),
+      });
       setProducts([]);
 
       if (onSuccess) {
@@ -107,12 +136,34 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Informações do Transporte</CardTitle>
-          </CardHeader>
+      <Card>
+        <CardHeader>
+            <CardTitle>Informações da Expedição</CardTitle>
+        </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="expeditionNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Número da Expedição</FormLabel>
+                    <FormControl>
+                      <Input {...field} readOnly />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Informações do Transporte</CardTitle>
+        </CardHeader>
+          <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="truckPlate"
@@ -168,16 +219,16 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                   </FormItem>
                 )}
               />
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader>
+      <Card>
+        <CardHeader>
             <CardTitle>Informações do Fornecedor</CardTitle>
-          </CardHeader>
+        </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="supplierName"
@@ -242,21 +293,21 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                   </FormItem>
                 )}
               />
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader>
+      <Card>
+        <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Produtos</CardTitle>
-              <Button
-                type="button"
+          <CardTitle>Produtos</CardTitle>
+                  <Button
+                    type="button"
                 onClick={() => setIsProductDialogOpen(true)}
-              >
+                  >
                 <Plus className="h-4 w-4 mr-2" />
                 Adicionar Produto
-              </Button>
+                  </Button>
             </div>
           </CardHeader>
           <CardContent>
@@ -276,7 +327,7 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="qualityControl.responsible"
+                name="qualityControl.responsibleName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Responsável</FormLabel>
@@ -344,15 +395,15 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                 )}
               />
             </div>
-          </CardContent>
-        </Card>
+        </CardContent>
+      </Card>
 
-        <div className="flex justify-end space-x-4">
+      <div className="flex justify-end space-x-4">
           <Button type="button" variant="outline" onClick={() => form.reset()}>
             Limpar
-          </Button>
+        </Button>
           <Button type="submit">Salvar</Button>
-        </div>
+      </div>
 
         <ProductDialog
           open={isProductDialogOpen}
@@ -360,7 +411,7 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
           product={productToEdit}
           onSubmit={handleAddProduct}
         />
-      </form>
+    </form>
     </Form>
   );
 }

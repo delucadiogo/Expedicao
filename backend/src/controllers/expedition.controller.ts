@@ -25,6 +25,7 @@ export class ExpeditionController {
       const stats = await this.expeditionService.getStats();
       res.json(stats);
     } catch (error) {
+      console.error('Erro ao buscar estatísticas no controller:', error);
       res.status(500).json({ error: 'Erro ao buscar estatísticas' });
     }
   };
@@ -48,10 +49,12 @@ export class ExpeditionController {
   // Criar nova expedição
   create = async (req: Request, res: Response) => {
     try {
+      console.log('Recebendo requisição para criar expedição:', req.body);
       const expeditionData: CreateExpeditionDTO = req.body;
       const newExpedition = await this.expeditionService.create(expeditionData);
       res.status(201).json(newExpedition);
     } catch (error) {
+      console.error('Erro ao criar expedição no controller:', error);
       res.status(500).json({ error: 'Erro ao criar expedição' });
     }
   };

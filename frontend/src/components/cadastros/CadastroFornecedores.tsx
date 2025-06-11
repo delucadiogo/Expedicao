@@ -1,93 +1,116 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft, Plus, Edit, Trash2 } from 'lucide-react';
-
-interface Fornecedor {
-  id: string;
-  nome: string;
-  cnpj: string;
-  contato: string;
-  telefone: string;
-  email: string;
-  endereco: string;
-}
+import { supplierService } from '@/lib/api';
+import { Supplier, CreateSupplierDTO, UpdateSupplierDTO } from '@/types/supplier';
+import { toast } from 'sonner';
 
 interface CadastroFornecedoresProps {
   onBack: () => void;
 }
 
 const CadastroFornecedores: React.FC<CadastroFornecedoresProps> = ({ onBack }) => {
-  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([
-    {
-      id: '1',
-      nome: 'Fornecedor ABC Ltda',
-      cnpj: '98.765.432/0001-10',
-      contato: 'João Fornecedor',
-      telefone: '(11) 4444-4444',
-      email: 'contato@fornecedorabc.com',
-      endereco: 'Av. dos Fornecedores, 456'
-    }
-  ]);
-  
+  const [fornecedores, setFornecedores] = useState<Supplier[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    nome: '',
-    cnpj: '',
-    contato: '',
-    telefone: '',
+  const [formData, setFormData] = useState<CreateSupplierDTO>({
+    name: '',
+    document: '',
     email: '',
-    endereco: ''
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (editingId) {
-      setFornecedores(prev => prev.map(f => 
-        f.id === editingId ? { ...formData, id: editingId } : f
-      ));
-    } else {
-      const newFornecedor: Fornecedor = {
-        ...formData,
-        id: Date.now().toString()
-      };
-      setFornecedores(prev => [...prev, newFornecedor]);
+  // Carregar fornecedores ao montar o componente
+  useEffect(() => {
+    loadFornecedores();
+  }, []);
+
+  const loadFornecedores = async () => {
+    try {
+      const data = await supplierService.getAll();
+      setFornecedores(data);
+    } catch (error) {
+      console.error('Erro ao carregar fornecedores:', error);
+      toast.error('Erro ao carregar fornecedores');
     }
-    
-    resetForm();
   };
 
-  const handleEdit = (fornecedor: Fornecedor) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      if (editingId) {
+        const updateData: UpdateSupplierDTO = {
+          name: formData.name,
+          document: formData.document,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zipCode: formData.zipCode
+        };
+        await supplierService.update(editingId, updateData);
+        toast.success('Fornecedor atualizado com sucesso');
+      } else {
+        await supplierService.create(formData);
+        toast.success('Fornecedor cadastrado com sucesso');
+      }
+      
+      await loadFornecedores();
+      resetForm();
+    } catch (error) {
+      console.error('Erro ao salvar fornecedor:', error);
+      toast.error('Erro ao salvar fornecedor');
+    }
+  };
+
+  const handleEdit = (fornecedor: Supplier) => {
     setFormData({
-      nome: fornecedor.nome,
-      cnpj: fornecedor.cnpj,
-      contato: fornecedor.contato,
-      telefone: fornecedor.telefone,
-      email: fornecedor.email,
-      endereco: fornecedor.endereco
+      name: fornecedor.name,
+      document: fornecedor.document,
+      email: fornecedor.email || '',
+      phone: fornecedor.phone || '',
+      address: fornecedor.address || '',
+      city: fornecedor.city || '',
+      state: fornecedor.state || '',
+      zipCode: fornecedor.zipCode || ''
     });
     setEditingId(fornecedor.id);
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
-    setFornecedores(prev => prev.filter(f => f.id !== id));
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este fornecedor?')) {
+      try {
+        await supplierService.delete(id);
+        toast.success('Fornecedor excluído com sucesso');
+        await loadFornecedores();
+      } catch (error) {
+        console.error('Erro ao excluir fornecedor:', error);
+        toast.error('Erro ao excluir fornecedor');
+      }
+    }
   };
 
   const resetForm = () => {
     setFormData({
-      nome: '',
-      cnpj: '',
-      contato: '',
-      telefone: '',
+      name: '',
+      document: '',
       email: '',
-      endereco: ''
+      phone: '',
+      address: '',
+      city: '',
+      state: '',
+      zipCode: ''
     });
     setEditingId(null);
     setShowForm(false);
@@ -119,38 +142,22 @@ const CadastroFornecedores: React.FC<CadastroFornecedoresProps> = ({ onBack }) =
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="nome">Nome da Empresa</Label>
+                    <Label htmlFor="name">Nome da Empresa</Label>
                     <Input
-                      id="nome"
-                      value={formData.nome}
-                      onChange={(e) => setFormData({...formData, nome: e.target.value})}
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
                       required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="cnpj">CNPJ</Label>
+                    <Label htmlFor="document">CNPJ</Label>
                     <Input
-                      id="cnpj"
-                      value={formData.cnpj}
-                      onChange={(e) => setFormData({...formData, cnpj: e.target.value})}
+                      id="document"
+                      value={formData.document}
+                      onChange={(e) => setFormData({...formData, document: e.target.value})}
                       placeholder="00.000.000/0000-00"
                       required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="contato">Pessoa de Contato</Label>
-                    <Input
-                      id="contato"
-                      value={formData.contato}
-                      onChange={(e) => setFormData({...formData, contato: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="telefone">Telefone</Label>
-                    <Input
-                      id="telefone"
-                      value={formData.telefone}
-                      onChange={(e) => setFormData({...formData, telefone: e.target.value})}
                     />
                   </div>
                   <div>
@@ -163,11 +170,43 @@ const CadastroFornecedores: React.FC<CadastroFornecedoresProps> = ({ onBack }) =
                     />
                   </div>
                   <div>
-                    <Label htmlFor="endereco">Endereço</Label>
+                    <Label htmlFor="phone">Telefone</Label>
                     <Input
-                      id="endereco"
-                      value={formData.endereco}
-                      onChange={(e) => setFormData({...formData, endereco: e.target.value})}
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="address">Endereço</Label>
+                    <Input
+                      id="address"
+                      value={formData.address}
+                      onChange={(e) => setFormData({...formData, address: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="city">Cidade</Label>
+                    <Input
+                      id="city"
+                      value={formData.city}
+                      onChange={(e) => setFormData({...formData, city: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="state">Estado</Label>
+                    <Input
+                      id="state"
+                      value={formData.state}
+                      onChange={(e) => setFormData({...formData, state: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="zipCode">CEP</Label>
+                    <Input
+                      id="zipCode"
+                      value={formData.zipCode}
+                      onChange={(e) => setFormData({...formData, zipCode: e.target.value})}
                     />
                   </div>
                 </div>
@@ -194,7 +233,7 @@ const CadastroFornecedores: React.FC<CadastroFornecedoresProps> = ({ onBack }) =
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>CNPJ</TableHead>
-                  <TableHead>Contato</TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead>Telefone</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -202,10 +241,10 @@ const CadastroFornecedores: React.FC<CadastroFornecedoresProps> = ({ onBack }) =
               <TableBody>
                 {fornecedores.map((fornecedor) => (
                   <TableRow key={fornecedor.id}>
-                    <TableCell className="font-medium">{fornecedor.nome}</TableCell>
-                    <TableCell>{fornecedor.cnpj}</TableCell>
-                    <TableCell>{fornecedor.contato}</TableCell>
-                    <TableCell>{fornecedor.telefone}</TableCell>
+                    <TableCell className="font-medium">{fornecedor.name}</TableCell>
+                    <TableCell>{fornecedor.document}</TableCell>
+                    <TableCell>{fornecedor.email}</TableCell>
+                    <TableCell>{fornecedor.phone}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
                         <Button

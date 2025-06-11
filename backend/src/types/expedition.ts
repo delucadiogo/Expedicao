@@ -1,3 +1,5 @@
+export type ExpeditionStatus = 'pendente' | 'em_analise' | 'aprovado' | 'rejeitado' | 'retido';
+
 export interface Product {
   id: string;
   name: string;
@@ -34,7 +36,7 @@ export interface Expedition {
   id: string;
   expeditionNumber: string;
   dateTime: string;
-  status: 'pendente' | 'em_analise' | 'aprovado' | 'rejeitado' | 'retido';
+  status: ExpeditionStatus;
   
   // Informações de Transporte
   truckPlate: string;
@@ -46,6 +48,7 @@ export interface Expedition {
   expeditionResponsible: string;
   responsiblePosition: string;
   supplierName: string;
+  supplierDocument: string;
   
   // Produtos
   products: Product[];
@@ -72,6 +75,23 @@ export interface ExpeditionStats {
   retained: number;
 }
 
-// Tipos para as requisições
-export interface CreateExpeditionDTO extends Omit<Expedition, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'> {}
-export interface UpdateExpeditionDTO extends Partial<CreateExpeditionDTO> {} 
+// DTOs para as requisições (definido explicitamente)
+export interface CreateExpeditionDTO {
+  expeditionNumber: string;
+  truckPlate: string;
+  driverName: string;
+  driverDocument: string;
+  transportCompany?: string;
+  supplierName: string;
+  supplierDocument: string;
+  expeditionResponsible: string;
+  responsiblePosition?: string;
+  products: Product[];
+  status: ExpeditionStatus;
+  qualityControl: QualityControl;
+  rejection?: Rejection;
+  dateTime: string;
+  createdBy: string;
+}
+
+export type UpdateExpeditionDTO = Partial<Omit<Expedition, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'> & { status?: ExpeditionStatus }>; 
