@@ -31,6 +31,7 @@ import NewTransportCompanyDialog from '@/components/transportCompany/NewTranspor
 import NewSupplierDialog from '@/components/supplier/NewSupplierDialog';
 import NewExpeditionResponsibleDialog from '@/components/expeditionResponsible/NewExpeditionResponsibleDialog';
 import NewQualityResponsibleDialog from '@/components/qualityResponsible/NewQualityResponsibleDialog';
+import NewProductDialog from '@/components/product/NewProductDialog';
 
 const formSchema = z.object({
   expeditionNumber: z.string().min(1, 'Número da expedição é obrigatório'),
@@ -75,6 +76,8 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
   const [isNewSupplierDialogOpen, setIsNewSupplierDialogOpen] = useState(false);
   const [isNewExpeditionResponsibleDialogOpen, setIsNewExpeditionResponsibleDialogOpen] = useState(false);
   const [isNewQualityResponsibleDialogOpen, setIsNewQualityResponsibleDialogOpen] = useState(false);
+  const [isNewProductDialogOpen, setIsNewProductDialogOpen] = useState(false);
+  const [productCatalog, setProductCatalog] = useState<ProductCatalog[]>([]);
 
   useEffect(() => {
     const fetchDrivers = async () => {
@@ -148,6 +151,18 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
       }
     };
     fetchQualityResponsibles();
+  }, []);
+
+  useEffect(() => {
+    const fetchProductCatalog = async () => {
+      try {
+        const data = await productCatalogService.getAll();
+        setProductCatalog(data);
+      } catch (error) {
+        console.error('Erro ao carregar catálogo de produtos:', error);
+      }
+    };
+    fetchProductCatalog();
   }, []);
 
   const generateExpeditionNumber = useCallback(() => {
@@ -612,11 +627,27 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
             <CardTitle>Produtos da Expedição</CardTitle>
         </CardHeader>
           <CardContent>
-          <Button type="button" onClick={() => setIsProductDialogOpen(true)} className="mb-4">
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Produto
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => setIsProductDialogOpen(true)}
+            className="mb-4"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Adicionar Produto na Expedição
           </Button>
-          <ProductList products={products} onEdit={handleEditProduct} onDelete={handleDeleteProduct} />
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => setIsNewProductDialogOpen(true)}
+            className="mb-4 ml-2"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Cadastrar Novo Produto (Catálogo)
+          </Button>
+          <ProductList
+            products={products}
+            onEdit={handleEditProduct}
+            onDelete={handleDeleteProduct}
+          />
 
           {form.formState.errors.products && (
             <FormMessage>{form.formState.errors.products.message}</FormMessage>
@@ -795,9 +826,15 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
         isOpen={isNewQualityResponsibleDialogOpen}
         onClose={() => setIsNewQualityResponsibleDialogOpen(false)}
         onSuccess={(newQualityResponsible) => {
-          setQualityResponsibles((prevResponsibles) => [...prevResponsibles, newQualityResponsible]);
-          form.setValue('qualityControl.responsibleName', newQualityResponsible.id);
-          setIsNewQualityResponsibleDialogOpen(false);
+          setQualityResponsibles((prev) => [...prev, newQualityResponsible]);
+        }}
+      />
+
+      <NewProductDialog
+        isOpen={isNewProductDialogOpen}
+        onClose={() => setIsNewProductDialogOpen(false)}
+        onSuccess={(newProduct) => {
+          setProductCatalog((prev) => [...prev, newProduct]);
         }}
       />
     </Form>
