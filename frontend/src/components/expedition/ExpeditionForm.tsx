@@ -25,6 +25,12 @@ import { truckService } from '@/lib/api';
 import { Truck } from '@/types/truck';
 import { qualityResponsibleService } from '@/lib/api';
 import { QualityResponsible } from '@/types/qualityResponsible';
+import NewTruckDialog from '@/components/truck/NewTruckDialog';
+import NewDriverDialog from '@/components/driver/NewDriverDialog';
+import NewTransportCompanyDialog from '@/components/transportCompany/NewTransportCompanyDialog';
+import NewSupplierDialog from '@/components/supplier/NewSupplierDialog';
+import NewExpeditionResponsibleDialog from '@/components/expeditionResponsible/NewExpeditionResponsibleDialog';
+import NewQualityResponsibleDialog from '@/components/qualityResponsible/NewQualityResponsibleDialog';
 
 const formSchema = z.object({
   expeditionNumber: z.string().min(1, 'Número da expedição é obrigatório'),
@@ -61,6 +67,12 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
   const [expeditionResponsibles, setExpeditionResponsibles] = useState<ExpeditionResponsible[]>([]);
   const [trucks, setTrucks] = useState<Truck[]>([]);
   const [qualityResponsibles, setQualityResponsibles] = useState<QualityResponsible[]>([]);
+  const [isNewTruckDialogOpen, setIsNewTruckDialogOpen] = useState(false);
+  const [isNewDriverDialogOpen, setIsNewDriverDialogOpen] = useState(false);
+  const [isNewTransportCompanyDialogOpen, setIsNewTransportCompanyDialogOpen] = useState(false);
+  const [isNewSupplierDialogOpen, setIsNewSupplierDialogOpen] = useState(false);
+  const [isNewExpeditionResponsibleDialogOpen, setIsNewExpeditionResponsibleDialogOpen] = useState(false);
+  const [isNewQualityResponsibleDialogOpen, setIsNewQualityResponsibleDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchDrivers = async () => {
@@ -299,16 +311,26 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Placa do Caminhão</FormLabel>
-                    <FormControl>
-                      <Combobox
-                        options={trucks.map(truck => ({ label: truck.plate, value: truck.plate }))}
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        placeholder="Selecione a placa..."
-                        displayField="label"
-                        valueField="value"
-                      />
-                    </FormControl>
+                    <div className="flex items-center space-x-2">
+                      <FormControl>
+                        <Combobox
+                          options={trucks.map(truck => ({ label: truck.plate, value: truck.plate }))}
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          placeholder="Selecione ou digite a placa..."
+                          displayField="label"
+                          valueField="value"
+                        />
+                      </FormControl>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        type="button"
+                        onClick={() => setIsNewTruckDialogOpen(true)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -320,20 +342,34 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Nome do Motorista</FormLabel>
-                    <FormControl>
-                      <Combobox
-                        options={drivers.map(driver => ({ label: driver.name, value: driver.name }))}
-                        value={field.value}
-                        onValueChange={(selectedValue) => {
-                          field.onChange(selectedValue);
-                          const selectedDriver = drivers.find(d => d.name === selectedValue);
-                          form.setValue('driverDocument', selectedDriver ? selectedDriver.document : '');
-                        }}
-                        placeholder="Selecione o motorista..."
-                        displayField="label"
-                        valueField="value"
-                      />
-                    </FormControl>
+                    <div className="flex items-center space-x-2">
+                      <FormControl>
+                        <Combobox
+                          options={drivers.map(driver => ({ label: driver.name, value: driver.id }))}
+                          value={field.value}
+                          onValueChange={(id) => {
+                            field.onChange(id);
+                            const selectedDriver = drivers.find(d => d.id === id);
+                            if (selectedDriver) {
+                              form.setValue('driverDocument', selectedDriver.document);
+                            } else {
+                              form.setValue('driverDocument', '');
+                            }
+                          }}
+                          placeholder="Selecione ou digite o motorista..."
+                          displayField="label"
+                          valueField="value"
+                        />
+                      </FormControl>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        type="button"
+                        onClick={() => setIsNewDriverDialogOpen(true)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -346,7 +382,7 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                   <FormItem>
                     <FormLabel>Documento do Motorista</FormLabel>
                     <FormControl>
-                      <Input {...field} readOnly />
+                      <Input {...field} disabled />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -358,17 +394,27 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                 name="transportCompany"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Empresa de Transporte</FormLabel>
-                    <FormControl>
-                      <Combobox
-                        options={transportCompanies.map(company => ({ label: company.name, value: company.name }))}
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        placeholder="Selecione a empresa..."
-                        displayField="label"
-                        valueField="value"
-                      />
-                    </FormControl>
+                    <FormLabel>Empresa de Transporte (Opcional)</FormLabel>
+                    <div className="flex items-center space-x-2">
+                      <FormControl>
+                        <Combobox
+                          options={transportCompanies.map(company => ({ label: company.name, value: company.id }))}
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          placeholder="Selecione ou digite a empresa..."
+                          displayField="label"
+                          valueField="value"
+                        />
+                      </FormControl>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        type="button"
+                        onClick={() => setIsNewTransportCompanyDialogOpen(true)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -389,20 +435,34 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Nome do Fornecedor</FormLabel>
-                    <FormControl>
-                      <Combobox
-                        options={suppliers.map(supplier => ({ label: supplier.name, value: supplier.name }))}
-                        value={field.value}
-                        onValueChange={(selectedValue) => {
-                          field.onChange(selectedValue);
-                          const selectedSupplier = suppliers.find(s => s.name === selectedValue);
-                          form.setValue('supplierDocument', selectedSupplier ? selectedSupplier.document : '');
-                        }}
-                        placeholder="Selecione o fornecedor..."
-                        displayField="label"
-                        valueField="value"
-                      />
-                    </FormControl>
+                    <div className="flex items-center space-x-2">
+                      <FormControl>
+                        <Combobox
+                          options={suppliers.map(supplier => ({ label: supplier.name, value: supplier.id }))}
+                          value={field.value}
+                          onValueChange={(id) => {
+                            field.onChange(id);
+                            const selectedSupplier = suppliers.find(s => s.id === id);
+                            if (selectedSupplier) {
+                              form.setValue('supplierDocument', selectedSupplier.document);
+                            } else {
+                              form.setValue('supplierDocument', '');
+                            }
+                          }}
+                          placeholder="Selecione ou digite o fornecedor..."
+                          displayField="label"
+                          valueField="value"
+                        />
+                      </FormControl>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        type="button"
+                        onClick={() => setIsNewSupplierDialogOpen(true)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -413,9 +473,9 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                 name="supplierDocument"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>CNPJ do Fornecedor</FormLabel>
+                    <FormLabel>Documento do Fornecedor</FormLabel>
                     <FormControl>
-                      <Input {...field} readOnly />
+                      <Input {...field} disabled />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -436,21 +496,35 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                 name="expeditionResponsible"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nome do Responsável</FormLabel>
-                    <FormControl>
-                      <Combobox
-                        options={expeditionResponsibles.map(responsible => ({ label: responsible.name, value: responsible.name }))}
-                        value={field.value}
-                        onValueChange={(selectedValue) => {
-                          field.onChange(selectedValue);
-                          const selectedResponsible = expeditionResponsibles.find(r => r.name === selectedValue);
-                          form.setValue('responsiblePosition', selectedResponsible ? selectedResponsible.position : '');
-                        }}
-                        placeholder="Selecione o responsável..."
-                        displayField="label"
-                        valueField="value"
-                      />
-                    </FormControl>
+                    <FormLabel>Responsável pela Expedição</FormLabel>
+                    <div className="flex items-center space-x-2">
+                      <FormControl>
+                        <Combobox
+                          options={expeditionResponsibles.map(responsible => ({ label: responsible.name, value: responsible.id }))}
+                          value={field.value}
+                          onValueChange={(id) => {
+                            field.onChange(id);
+                            const selectedResponsible = expeditionResponsibles.find(r => r.id === id);
+                            if (selectedResponsible) {
+                              form.setValue('responsiblePosition', selectedResponsible.position);
+                            } else {
+                              form.setValue('responsiblePosition', '');
+                            }
+                          }}
+                          placeholder="Selecione ou digite o responsável..."
+                          displayField="label"
+                          valueField="value"
+                        />
+                      </FormControl>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        type="button"
+                        onClick={() => setIsNewExpeditionResponsibleDialogOpen(true)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -463,7 +537,7 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                   <FormItem>
                     <FormLabel>Cargo/Setor</FormLabel>
                     <FormControl>
-                      <Input {...field} readOnly />
+                      <Input {...field} disabled />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -514,21 +588,27 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
                 name="qualityControl.responsibleName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Responsável</FormLabel>
-                    <FormControl>
-                      <Combobox
-                        options={qualityResponsibles.map(responsible => ({ label: responsible.name, value: responsible.name }))}
-                        value={field.value}
-                        onValueChange={(selectedValue) => {
-                          field.onChange(selectedValue);
-                          const selectedResponsible = qualityResponsibles.find(r => r.name === selectedValue);
-                          form.setValue('qualityControl.digitalSignature', selectedResponsible ? selectedResponsible.digitalSignature : '');
-                        }}
-                        placeholder="Selecione o responsável da qualidade..."
-                        displayField="label"
-                        valueField="value"
-                      />
-                    </FormControl>
+                    <FormLabel>Responsável pela Qualidade</FormLabel>
+                    <div className="flex items-center space-x-2">
+                      <FormControl>
+                        <Combobox
+                          options={qualityResponsibles.map(responsible => ({ label: responsible.name, value: responsible.id }))}
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          placeholder="Selecione ou digite o responsável..."
+                          displayField="label"
+                          valueField="value"
+                        />
+                      </FormControl>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        type="button"
+                        onClick={() => setIsNewQualityResponsibleDialogOpen(true)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -597,6 +677,69 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
           Criar Expedição
       </Button>
       </form>
+
+      <NewTruckDialog
+        isOpen={isNewTruckDialogOpen}
+        onClose={() => setIsNewTruckDialogOpen(false)}
+        onSuccess={(newTruck) => {
+          setTrucks((prevTrucks) => [...prevTrucks, newTruck]);
+          form.setValue('truckPlate', newTruck.plate);
+          setIsNewTruckDialogOpen(false);
+        }}
+      />
+
+      <NewDriverDialog
+        isOpen={isNewDriverDialogOpen}
+        onClose={() => setIsNewDriverDialogOpen(false)}
+        onSuccess={(newDriver) => {
+          setDrivers((prevDrivers) => [...prevDrivers, newDriver]);
+          form.setValue('driverName', newDriver.id);
+          form.setValue('driverDocument', newDriver.document);
+          setIsNewDriverDialogOpen(false);
+        }}
+      />
+
+      <NewTransportCompanyDialog
+        isOpen={isNewTransportCompanyDialogOpen}
+        onClose={() => setIsNewTransportCompanyDialogOpen(false)}
+        onSuccess={(newTransportCompany) => {
+          setTransportCompanies((prevCompanies) => [...prevCompanies, newTransportCompany]);
+          form.setValue('transportCompany', newTransportCompany.id);
+          setIsNewTransportCompanyDialogOpen(false);
+        }}
+      />
+
+      <NewSupplierDialog
+        isOpen={isNewSupplierDialogOpen}
+        onClose={() => setIsNewSupplierDialogOpen(false)}
+        onSuccess={(newSupplier) => {
+          setSuppliers((prevSuppliers) => [...prevSuppliers, newSupplier]);
+          form.setValue('supplierName', newSupplier.id);
+          form.setValue('supplierDocument', newSupplier.document);
+          setIsNewSupplierDialogOpen(false);
+        }}
+      />
+
+      <NewExpeditionResponsibleDialog
+        isOpen={isNewExpeditionResponsibleDialogOpen}
+        onClose={() => setIsNewExpeditionResponsibleDialogOpen(false)}
+        onSuccess={(newExpeditionResponsible) => {
+          setExpeditionResponsibles((prevResponsibles) => [...prevResponsibles, newExpeditionResponsible]);
+          form.setValue('expeditionResponsible', newExpeditionResponsible.id);
+          form.setValue('responsiblePosition', newExpeditionResponsible.position);
+          setIsNewExpeditionResponsibleDialogOpen(false);
+        }}
+      />
+
+      <NewQualityResponsibleDialog
+        isOpen={isNewQualityResponsibleDialogOpen}
+        onClose={() => setIsNewQualityResponsibleDialogOpen(false)}
+        onSuccess={(newQualityResponsible) => {
+          setQualityResponsibles((prevResponsibles) => [...prevResponsibles, newQualityResponsible]);
+          form.setValue('qualityControl.responsibleName', newQualityResponsible.id);
+          setIsNewQualityResponsibleDialogOpen(false);
+        }}
+      />
     </Form>
   );
 }
