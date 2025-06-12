@@ -51,6 +51,7 @@ export interface Expedition {
   rejection?: Rejection;
   createdAt: string;
   updatedAt: string;
+  createdBy: string;
   updatedBy: string;
 }
 

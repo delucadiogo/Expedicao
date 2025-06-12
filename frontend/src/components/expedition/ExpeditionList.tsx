@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Eye, Printer, Trash2 } from 'lucide-react';
 import { Expedition, ExpeditionStatus } from '@/types/expedition';
+import { useNavigate } from 'react-router-dom';
 
 interface ExpeditionListProps {
   onPrintRequest: (expedition: Expedition) => void;
@@ -14,6 +15,7 @@ interface ExpeditionListProps {
 export default function ExpeditionList({ onPrintRequest }: ExpeditionListProps) {
   const { expeditions, deleteExpedition } = useExpeditionContext();
   const [expeditionToDelete, setExpeditionToDelete] = useState<Expedition | null>(null);
+  const navigate = useNavigate();
 
   const handleDelete = async () => {
     if (expeditionToDelete) {
@@ -108,7 +110,7 @@ export default function ExpeditionList({ onPrintRequest }: ExpeditionListProps) 
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => window.location.href = `/expeditions/${expedition.id}`}
+                            onClick={() => navigate(`/expeditions/${expedition.id}`)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>

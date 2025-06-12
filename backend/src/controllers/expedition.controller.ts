@@ -33,6 +33,7 @@ export class ExpeditionController {
   // Obter expedição por ID
   getById = async (req: Request, res: Response) => {
     try {
+      console.log('Requisição GET /expeditions/:id recebida para ID:', req.params.id);
       const { id } = req.params;
       const expedition = await this.expeditionService.getById(id);
       
