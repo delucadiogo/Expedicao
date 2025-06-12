@@ -4,15 +4,18 @@ import { ExpeditionProvider } from '@/contexts/ExpeditionContext';
 import Dashboard from '@/components/expedition/Dashboard';
 import ExpeditionForm from '@/components/expedition/ExpeditionForm';
 import ExpeditionList from '@/components/expedition/ExpeditionList';
-import { Truck, Plus, List, BarChart3, LogOut, Settings } from 'lucide-react';
+import { Truck, Plus, List, BarChart3, LogOut, Settings, Printer } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useNavigate, useLocation } from 'react-router-dom';
+import PrintableNewExpeditionForm from '@/components/expedition/PrintableNewExpeditionForm';
 
 const Index = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  const [isPrintableFormOpen, setIsPrintableFormOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState(() => {
     const params = new URLSearchParams(location.search);
@@ -35,6 +38,18 @@ const Index = () => {
     logout();
     navigate('/login');
   };
+
+  const handlePrintableForm = () => {
+    setIsPrintableFormOpen(true);
+    setTimeout(() => {
+      window.print();
+      setIsPrintableFormOpen(false);
+    }, 500);
+  };
+
+  if (isPrintableFormOpen) {
+    return <PrintableNewExpeditionForm onClose={() => setIsPrintableFormOpen(false)} />;
+  }
 
   return (
     <ExpeditionProvider>
@@ -103,10 +118,16 @@ const Index = () => {
                       Cadastre uma nova expedição no sistema
                     </p>
                   </div>
-                  <Button variant="outline" onClick={() => navigate('/?tab=new')}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="outline" onClick={() => handleTabChange('new')}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar
+                    </Button>
+                    <Button variant="outline" onClick={handlePrintableForm}>
+                      <Printer className="h-4 w-4 mr-2" />
+                      Imprimir Ficha Manual
+                    </Button>
+                  </div>
                 </div>
                 <ExpeditionForm onSuccess={() => handleTabChange('list')} />
               </div>
