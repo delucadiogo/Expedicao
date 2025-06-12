@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ExpeditionProvider } from '@/contexts/ExpeditionContext';
 import Dashboard from '@/components/expedition/Dashboard';
@@ -26,13 +26,10 @@ const Index = () => {
     }
   });
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const tab = params.get('tab');
-    if (tab && (tab === 'list' || tab === 'new' || tab === 'dashboard') && tab !== activeTab) {
-      setActiveTab(tab);
-    }
-  }, [location.search, activeTab]);
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    navigate(`/?tab=${value}`);
+  };
 
   const handleLogout = () => {
     logout();
@@ -77,7 +74,7 @@ const Index = () => {
         </header>
 
         <main className="container mx-auto px-4 py-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="dashboard" className="flex items-center space-x-2">
                 <BarChart3 className="h-4 w-4" />
@@ -111,7 +108,7 @@ const Index = () => {
                     Adicionar
                   </Button>
                 </div>
-                <ExpeditionForm onSuccess={() => setActiveTab('list')} />
+                <ExpeditionForm onSuccess={() => handleTabChange('list')} />
               </div>
             </TabsContent>
 
