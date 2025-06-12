@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Cadastros from "./pages/Cadastros";
 import ExpeditionDetail from "./pages/ExpeditionDetail";
+import EditExpeditionPage from "./pages/EditExpeditionPage";
 import NotFound from "./pages/NotFound";
 import { ExpeditionProvider } from './contexts/ExpeditionContext';
 import Register from './components/auth/Register';
@@ -41,6 +42,11 @@ const App = () => {
                 <Route path="/expeditions/:id" element={
                   <ProtectedRoute>
                     <ExpeditionDetail />
+                  </ProtectedRoute>
+                } />
+                <Route path="/expeditions/edit/:id" element={
+                  <ProtectedRoute>
+                    <EditExpeditionPage />
                   </ProtectedRoute>
                 } />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

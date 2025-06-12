@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Trash2 } from 'lucide-react';
-import { ExpeditionStatus, Product, CreateExpeditionDTO } from '@/types/expedition';
+import { ExpeditionStatus, Product, CreateExpeditionDTO, Expedition } from '@/types/expedition';
 import ProductDialog from './ProductDialog';
 import ProductList from './ProductList';
 import { driverService } from '@/lib/api';
@@ -54,11 +54,13 @@ const formSchema = z.object({
 
 interface ExpeditionFormProps {
   onSuccess?: () => void;
+  initialData?: Expedition;
+  onSubmit: (data: any) => Promise<void>;
 }
 
-export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
+export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: ExpeditionFormProps) {
   const { createExpedition } = useExpeditionContext();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>(initialData?.products || []);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [productToEdit, setProductToEdit] = useState<Product | undefined>();
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -160,63 +162,121 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      expeditionNumber: generateExpeditionNumber(),
-      truckPlate: '',
-      driverName: '',
-      driverDocument: '',
-      transportCompany: '',
-      supplierName: '',
-      supplierDocument: '',
-      expeditionResponsible: '',
-      responsiblePosition: '',
-      products: [],
+      expeditionNumber: initialData?.expeditionNumber || generateExpeditionNumber(),
+      truckPlate: initialData?.truckPlate || '',
+      driverName: initialData?.driverName || '',
+      driverDocument: initialData?.driverDocument || '',
+      transportCompany: initialData?.transportCompany || '',
+      supplierName: initialData?.supplierName || '',
+      supplierDocument: initialData?.supplierDocument || '',
+      expeditionResponsible: initialData?.expeditionResponsible || '',
+      responsiblePosition: initialData?.responsiblePosition || '',
+      products: initialData?.products || [],
       qualityControl: {
-        responsibleName: '',
-        approvalStatus: 'pendente',
-        justification: '',
-        digitalSignature: '',
-        observations: '',
+        responsibleName: initialData?.qualityControl?.responsibleName || '',
+        approvalStatus: initialData?.qualityControl?.approvalStatus || 'pendente',
+        justification: initialData?.qualityControl?.justification || '',
+        digitalSignature: initialData?.qualityControl?.digitalSignature || '',
+        observations: initialData?.qualityControl?.observations || '',
       },
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log('Tentando criar expedição...');
-    try {
-      const expeditionData: CreateExpeditionDTO = {
-        expeditionNumber: values.expeditionNumber,
-        truckPlate: values.truckPlate,
-        driverName: values.driverName,
-        driverDocument: values.driverDocument,
-        transportCompany: values.transportCompany,
-        supplierName: values.supplierName,
-        supplierDocument: values.supplierDocument,
-        expeditionResponsible: values.expeditionResponsible,
-        responsiblePosition: values.responsiblePosition,
-        products: products,
-        status: 'pendente',
-        qualityControl: {
-          responsibleName: values.qualityControl.responsibleName,
-          approvalStatus: values.qualityControl.approvalStatus,
-          justification: values.qualityControl.justification,
-          digitalSignature: values.qualityControl.digitalSignature,
-          observations: values.qualityControl.observations,
-        },
-        dateTime: new Date().toISOString(),
-      };
+  useEffect(() => {
+    if (initialData) {
+      const driver = drivers.find(d => d.name === initialData.driverName);
+      const transport = transportCompanies.find(tc => tc.name === initialData.transportCompany);
+      const supplier = suppliers.find(s => s.name === initialData.supplierName);
+      const responsible = expeditionResponsibles.find(er => er.name === initialData.expeditionResponsible);
+      const qualityResponsible = qualityResponsibles.find(qr => qr.name === initialData.qualityControl.responsibleName);
 
-      await createExpedition(expeditionData);
       form.reset({
-        ...form.getValues(),
-        expeditionNumber: generateExpeditionNumber(),
+        expeditionNumber: initialData.expeditionNumber,
+        truckPlate: initialData.truckPlate,
+        driverName: driver?.id || '',
+        driverDocument: initialData.driverDocument,
+        transportCompany: transport?.id || '',
+        supplierName: supplier?.id || '',
+        supplierDocument: initialData.supplierDocument,
+        expeditionResponsible: responsible?.id || '',
+        responsiblePosition: initialData.responsiblePosition || '',
+        products: initialData.products,
+        qualityControl: {
+          responsibleName: qualityResponsible?.id || '',
+          approvalStatus: initialData.qualityControl.approvalStatus || 'pendente',
+          justification: initialData.qualityControl.justification || '',
+          digitalSignature: initialData.qualityControl.digitalSignature || '',
+          observations: initialData.qualityControl.observations || '',
+        },
       });
-      setProducts([]);
+      setProducts(initialData.products || []);
+    }
+  }, [initialData, form, drivers, transportCompanies, suppliers, expeditionResponsibles, qualityResponsibles]);
 
-      if (onSuccess) {
-        onSuccess();
+  const onSubmitForm = async (values: z.infer<typeof formSchema>) => {
+    // Encontrar os nomes correspondentes aos IDs selecionados
+    const selectedDriver = drivers.find(d => d.id === values.driverName);
+    const selectedTransportCompany = transportCompanies.find(tc => tc.id === values.transportCompany);
+    const selectedSupplier = suppliers.find(s => s.id === values.supplierName);
+    const selectedExpeditionResponsible = expeditionResponsibles.find(er => er.id === values.expeditionResponsible);
+    const selectedQualityResponsible = qualityResponsibles.find(qr => qr.id === values.qualityControl.responsibleName);
+
+    const dataToSend = {
+      ...values,
+      driverName: selectedDriver?.name || '',
+      transportCompany: selectedTransportCompany?.name,
+      supplierName: selectedSupplier?.name || '',
+      expeditionResponsible: selectedExpeditionResponsible?.name || '',
+      qualityControl: {
+        ...values.qualityControl,
+        responsibleName: selectedQualityResponsible?.name || '',
+      },
+      products: products, // Garantir que os produtos sempre usem o estado local
+    };
+
+    if (initialData) {
+      await onSubmit(dataToSend);
+    } else {
+      console.log('Tentando criar expedição...');
+      try {
+        const expeditionData: CreateExpeditionDTO = {
+          expeditionNumber: dataToSend.expeditionNumber,
+          truckPlate: dataToSend.truckPlate,
+          driverName: dataToSend.driverName,
+          driverDocument: dataToSend.driverDocument,
+          transportCompany: dataToSend.transportCompany,
+          supplierName: dataToSend.supplierName,
+          supplierDocument: dataToSend.supplierDocument,
+          expeditionResponsible: dataToSend.expeditionResponsible,
+          responsiblePosition: dataToSend.responsiblePosition,
+          products: dataToSend.products,
+          status: 'pendente',
+          qualityControl: {
+            responsibleName: dataToSend.qualityControl.responsibleName,
+            approvalStatus: dataToSend.qualityControl.approvalStatus,
+            justification: dataToSend.qualityControl.justification,
+            digitalSignature: dataToSend.qualityControl.digitalSignature,
+            observations: dataToSend.qualityControl.observations,
+            analysisDateTime: undefined,
+          },
+          rejection: undefined,
+          dateTime: new Date().toISOString(),
+          createdBy: undefined,
+        };
+
+        await createExpedition(expeditionData);
+        form.reset({
+          ...form.getValues(),
+          expeditionNumber: generateExpeditionNumber(),
+        });
+        setProducts([]);
+
+        if (onSuccess) {
+          onSuccess();
+        }
+      } catch (error) {
+        console.error('Erro ao criar expedição:', error);
       }
-    } catch (error) {
-      console.error('Erro ao criar expedição:', error);
     }
   };
 
@@ -276,7 +336,7 @@ export default function ExpeditionForm({ onSuccess }: ExpeditionFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmitForm)} className="space-y-6">
       <Card>
         <CardHeader>
             <CardTitle>Informações da Expedição</CardTitle>

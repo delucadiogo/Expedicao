@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Eye, Printer, Trash2 } from 'lucide-react';
+import { Eye, Printer, Trash2, Pencil } from 'lucide-react';
 import { Expedition, ExpeditionStatus } from '@/types/expedition';
 import { useNavigate } from 'react-router-dom';
 
@@ -113,6 +113,13 @@ export default function ExpeditionList({ onPrintRequest }: ExpeditionListProps) 
                             onClick={() => navigate(`/expeditions/${expedition.id}`)}
                           >
                             <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/expeditions/edit/${expedition.id}`)}
+                          >
+                            <Pencil className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="outline"

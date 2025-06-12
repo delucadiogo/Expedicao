@@ -33,7 +33,6 @@ export function useExpedition() {
       setError(null);
       const data = await expeditionService.getAll();
       setExpeditions(data);
-      updateStats(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar expedições');
       toast({
@@ -53,7 +52,6 @@ export function useExpedition() {
       setError(null);
       const data = await expeditionService.getStats();
       setStats(data);
-      updateStats(expeditions);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar estatísticas');
       toast({
@@ -64,7 +62,7 @@ export function useExpedition() {
     } finally {
       setLoading(false);
     }
-  }, [toast, expeditions]);
+  }, [toast]);
 
   // Criar nova expedição
   const createExpedition = useCallback(async (data: CreateExpeditionDTO) => {
@@ -81,7 +79,7 @@ export function useExpedition() {
 
       const newExpedition = await expeditionService.create(expeditionData);
       setExpeditions(prev => [...prev, newExpedition]);
-      updateStats([...expeditions, newExpedition]);
+      loadStats(); // Recarregar estatísticas após criar expedição
       toast({
         title: 'Sucesso',
         description: 'Expedição criada com sucesso',
@@ -98,13 +96,14 @@ export function useExpedition() {
     } finally {
       setLoading(false);
     }
-  }, [expeditions, generateExpeditionNumber, toast]);
+  }, [expeditions, generateExpeditionNumber, toast, loadStats]);
 
   // Atualizar expedição
   const updateExpedition = useCallback(async (id: string, data: UpdateExpeditionDTO) => {
     try {
       setLoading(true);
       setError(null);
+      const updatedExpedition = await expeditionService.update(id, data);
       setExpeditions(prev => prev.map(expedition => 
         expedition.id === id 
           ? { 
@@ -116,15 +115,7 @@ export function useExpedition() {
             }
           : expedition
       ));
-      updateStats(expeditions.map(expedition => 
-        expedition.id === id 
-          ? { 
-              ...expedition, 
-              ...data,
-              status: data.status || expedition.status,
-            }
-          : expedition
-      ));
+      loadStats(); // Recarregar estatísticas após atualizar expedição
       toast({
         title: 'Sucesso',
         description: 'Expedição atualizada com sucesso',
@@ -141,7 +132,7 @@ export function useExpedition() {
     } finally {
       setLoading(false);
     }
-  }, [expeditions]);
+  }, [expeditions, toast, loadStats]);
 
   // Deletar expedição
   const deleteExpedition = useCallback(async (id: string) => {
@@ -150,7 +141,7 @@ export function useExpedition() {
       setError(null);
       await expeditionService.delete(id);
       setExpeditions(prev => prev.filter(exp => exp.id !== id));
-      updateStats(expeditions.filter(exp => exp.id !== id));
+      loadStats(); // Recarregar estatísticas após deletar expedição
       toast({
         title: 'Sucesso',
         description: 'Expedição excluída com sucesso',
@@ -166,7 +157,7 @@ export function useExpedition() {
     } finally {
       setLoading(false);
     }
-  }, [expeditions]);
+  }, [expeditions, toast, loadStats]);
 
   // Atualizar controle de qualidade
   const updateQualityControl = useCallback(async (id: string, data: any) => {
@@ -177,6 +168,7 @@ export function useExpedition() {
       setExpeditions(prev =>
         prev.map(exp => (exp.id === id ? updatedExpedition : exp))
       );
+      loadStats(); // Recarregar estatísticas após atualizar controle de qualidade
       toast({
         title: 'Sucesso',
         description: 'Controle de qualidade atualizado com sucesso',
@@ -193,7 +185,7 @@ export function useExpedition() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [expeditions, toast, loadStats]);
 
   // Atualizar rejeição
   const updateRejection = useCallback(async (id: string, data: any) => {
@@ -204,6 +196,7 @@ export function useExpedition() {
       setExpeditions(prev =>
         prev.map(exp => (exp.id === id ? updatedExpedition : exp))
       );
+      loadStats(); // Recarregar estatísticas após atualizar rejeição
       toast({
         title: 'Sucesso',
         description: 'Rejeição atualizada com sucesso',
@@ -220,20 +213,12 @@ export function useExpedition() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [expeditions, toast, loadStats]);
 
-  const updateStats = useCallback((expeditions: Expedition[]) => {
-    const newStats: ExpeditionStats = {
-      total: expeditions.length,
-      pending: expeditions.filter(e => e.status === 'pendente').length,
-      inAnalysis: expeditions.filter(e => e.status === 'em_analise').length,
-      approved: expeditions.filter(e => e.status === 'aprovado').length,
-      rejected: expeditions.filter(e => e.status === 'rejeitado').length,
-      retained: expeditions.filter(e => e.status === 'retido').length,
-    };
-    setStats(newStats);
-    localStorage.setItem('expeditions', JSON.stringify(expeditions));
-  }, []);
+  const refetchAllExpeditionData = useCallback(() => {
+    loadExpeditions();
+    loadStats();
+  }, [loadExpeditions, loadStats]);
 
   return {
     expeditions,
@@ -247,5 +232,6 @@ export function useExpedition() {
     deleteExpedition,
     updateQualityControl,
     updateRejection,
+    refetchAllExpeditionData,
   };
 } 

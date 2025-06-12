@@ -6,11 +6,10 @@ const ExpeditionContext = createContext<ReturnType<typeof useExpedition> | null>
 export function ExpeditionProvider({ children }: { children: React.ReactNode }) {
   const expedition = useExpedition();
 
-  // Carregar dados iniciais
+  // Carregar dados iniciais e recarregar em caso de operações
   useEffect(() => {
-    expedition.loadExpeditions();
-    expedition.loadStats();
-  }, []);
+    expedition.refetchAllExpeditionData(); // Usar a nova função unificada
+  }, [expedition.refetchAllExpeditionData]); // Adicionar como dependência
 
   return (
     <ExpeditionContext.Provider value={expedition}>
