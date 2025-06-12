@@ -1,11 +1,10 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface User {
   id: string;
-  name: string;
+  username: string;
   email: string;
-  role: 'expedição' | 'qualidade' | 'suprimentos' | 'admin';
+  role: string;
 }
 
 interface AuthContextType {
@@ -13,6 +12,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
+  register: (username: string, email: string, password: string, roleName: 'expedição' | 'qualidade' | 'suprimentos' | 'admin') => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,41 +35,96 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
-    if (savedUser) {
+    const savedToken = localStorage.getItem('token');
+    if (savedUser && savedToken) {
       setUser(JSON.parse(savedUser));
       setIsAuthenticated(true);
     }
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Simulação de login - em produção, conectar com backend real
-    const mockUsers = [
-      { id: '1', name: 'João Silva', email: 'joao@oliveira.com.br', password: '123456', role: 'expedição' as const },
-      { id: '2', name: 'Maria Santos', email: 'maria@oliveira.com.br', password: '123456', role: 'qualidade' as const },
-      { id: '3', name: 'Pedro Costa', email: 'pedro@oliveira.com.br', password: '123456', role: 'admin' as const }
-    ];
+    try {
+      const response = await fetch('http://localhost:3001/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const foundUser = mockUsers.find(u => u.email === email && u.password === password);
-    
-    if (foundUser) {
-      const { password: _, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
-      setIsAuthenticated(true);
-      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-      return true;
+      if (response.ok) {
+        const data = await response.json();
+        const { user: authUser, token } = data;
+
+        const frontendUser: User = {
+          id: authUser.id,
+          username: authUser.username,
+          email: authUser.email,
+          role: authUser.role,
+        };
+
+        setUser(frontendUser);
+        setIsAuthenticated(true);
+        localStorage.setItem('user', JSON.stringify(frontendUser));
+        localStorage.setItem('token', token);
+        return true;
+      } else {
+        const errorData = await response.json();
+        console.error('Erro no login:', errorData.message);
+        return false;
+      }
+    } catch (error) {
+      console.error('Erro na comunicação com o servidor de login:', error);
+      return false;
     }
-    
-    return false;
+  };
+
+  const register = async (username: string, email: string, password: string, roleName: 'expedição' | 'qualidade' | 'suprimentos' | 'admin'): Promise<boolean> => {
+    try {
+      const response = await fetch('http://localhost:3001/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, email, password, roleName }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const { user: authUser, token } = data;
+
+        const frontendUser: User = {
+          id: authUser.id,
+          username: authUser.username,
+          email: authUser.email,
+          role: authUser.role,
+        };
+
+        setUser(frontendUser);
+        setIsAuthenticated(true);
+        localStorage.setItem('user', JSON.stringify(frontendUser));
+        localStorage.setItem('token', token);
+        return true;
+      } else {
+        const errorData = await response.json();
+        console.error('Erro no registro:', errorData.message);
+        return false;
+      }
+    } catch (error) {
+      console.error('Erro na comunicação com o servidor de registro:', error);
+      return false;
+    }
   };
 
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated, register }}>
       {children}
     </AuthContext.Provider>
   );

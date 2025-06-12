@@ -9,6 +9,7 @@ import productCatalogRoutes from './routes/productCatalog.routes';
 import expeditionResponsibleRoutes from './routes/expeditionResponsible.routes';
 import supplierRoutes from './routes/supplier.routes';
 import qualityResponsibleRoutes from './routes/qualityResponsible.routes';
+import authRoutes from './routes/authRoutes';
 import { testConnection } from './config/database';
 
 // Carregar variáveis de ambiente
@@ -29,6 +30,7 @@ app.use('/api', productCatalogRoutes);
 app.use('/api/expedition-responsibles', expeditionResponsibleRoutes);
 app.use('/api/suppliers', supplierRoutes);
 app.use('/api/quality-responsibles', qualityResponsibleRoutes);
+app.use('/api/auth', authRoutes);
 
 // Rota de health check
 app.get('/health', (req, res) => {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -110,6 +109,12 @@ const Login = () => {
                 <p>joao@oliveira.com.br / 123456</p>
                 <p>maria@oliveira.com.br / 123456</p>
                 <p>pedro@oliveira.com.br / 123456</p>
+              </div>
+              <div className="mt-4 text-center text-sm">
+                Não tem uma conta?
+                <Button variant="link" onClick={() => navigate('/register')} className="p-0 h-auto align-baseline text-blue-500 hover:text-blue-700">
+                  Cadastre-se
+                </Button>
               </div>
             </form>
           </CardContent>

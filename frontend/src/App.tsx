@@ -11,6 +11,7 @@ import Cadastros from "./pages/Cadastros";
 import ExpeditionDetail from "./pages/ExpeditionDetail";
 import NotFound from "./pages/NotFound";
 import { ExpeditionProvider } from './contexts/ExpeditionContext';
+import Register from './components/auth/Register';
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => {
             <BrowserRouter>
               <Routes>
                 <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
                 <Route path="/" element={
                   <ProtectedRoute>
                     <Index />
