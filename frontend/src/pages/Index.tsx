@@ -1,40 +1,43 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ExpeditionProvider } from '@/contexts/ExpeditionContext';
 import Dashboard from '@/components/expedition/Dashboard';
 import ExpeditionForm from '@/components/expedition/ExpeditionForm';
 import ExpeditionList from '@/components/expedition/ExpeditionList';
-import { Truck, Plus, List, BarChart3, LogOut, Printer, Settings } from 'lucide-react';
+import { Truck, Plus, List, BarChart3, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
-import PrintExpedition from '@/components/expedition/PrintExpedition';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [printMode, setPrintMode] = useState(false);
-  const [printData, setPrintData] = useState<any>(null);
+  const location = useLocation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  const [activeTab, setActiveTab] = useState(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab === 'list') {
+      return 'list';
+    } else if (tab === 'new') {
+      return 'new';
+    } else {
+      return 'dashboard';
+    }
+  });
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab && (tab === 'list' || tab === 'new' || tab === 'dashboard') && tab !== activeTab) {
+      setActiveTab(tab);
+    }
+  }, [location.search, activeTab]);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
-
-  const handlePrint = (data?: any) => {
-    setPrintData(data || {});
-    setPrintMode(true);
-    setTimeout(() => {
-      window.print();
-      setPrintMode(false);
-    }, 100);
-  };
-
-  if (printMode) {
-    return <PrintExpedition data={printData} onClose={() => setPrintMode(false)} />;
-  }
 
   return (
     <ExpeditionProvider>
@@ -103,9 +106,9 @@ const Index = () => {
                       Cadastre uma nova expedição no sistema
                     </p>
                   </div>
-                  <Button variant="outline" onClick={() => handlePrint()}>
-                    <Printer className="h-4 w-4 mr-2" />
-                    Imprimir Formulário Vazio
+                  <Button variant="outline" onClick={() => navigate('/?tab=new')}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar
                   </Button>
                 </div>
                 <ExpeditionForm onSuccess={() => setActiveTab('list')} />
@@ -113,7 +116,7 @@ const Index = () => {
             </TabsContent>
 
             <TabsContent value="list" className="space-y-6">
-              <ExpeditionList onPrintRequest={handlePrint} />
+              <ExpeditionList onPrintRequest={() => { /* Lógica de impressão agora no App.tsx */ }} />
             </TabsContent>
           </Tabs>
         </main>

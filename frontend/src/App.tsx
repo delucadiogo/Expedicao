@@ -10,40 +10,46 @@ import Login from "./pages/Login";
 import Cadastros from "./pages/Cadastros";
 import ExpeditionDetail from "./pages/ExpeditionDetail";
 import NotFound from "./pages/NotFound";
+import { ExpeditionProvider } from './contexts/ExpeditionContext';
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={
-              <ProtectedRoute>
-                <Index />
-              </ProtectedRoute>
-            } />
-            <Route path="/cadastros" element={
-              <ProtectedRoute>
-                <Cadastros />
-              </ProtectedRoute>
-            } />
-            <Route path="/expeditions/:id" element={
-              <ProtectedRoute>
-                <ExpeditionDetail />
-              </ProtectedRoute>
-            } />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <ExpeditionProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <Index />
+                  </ProtectedRoute>
+                } />
+                <Route path="/cadastros" element={
+                  <ProtectedRoute>
+                    <Cadastros />
+                  </ProtectedRoute>
+                } />
+                <Route path="/expeditions/:id" element={
+                  <ProtectedRoute>
+                    <ExpeditionDetail />
+                  </ProtectedRoute>
+                } />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </ExpeditionProvider>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

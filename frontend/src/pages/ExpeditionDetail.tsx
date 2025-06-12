@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { expeditionService } from '@/lib/api';
 import { Expedition, Product, QualityControl, Rejection } from '@/types/expedition';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +14,7 @@ export default function ExpeditionDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchExpedition = async () => {
@@ -82,9 +83,14 @@ export default function ExpeditionDetail() {
       <div className="container mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center justify-between print:hidden">
           <h1 className="text-3xl font-bold">Detalhes da Expedição: {expedition.expeditionNumber}</h1>
-          <Button onClick={() => window.print()}>
-            <Printer className="h-4 w-4 mr-2" /> Imprimir
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button onClick={() => window.print()}>
+              <Printer className="h-4 w-4 mr-2" /> Imprimir
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/?tab=list')}>
+              Voltar para Expedições
+            </Button>
+          </div>
         </div>
 
         {/* Conteúdo do relatório para impressão */}
