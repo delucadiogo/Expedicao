@@ -6,6 +6,7 @@ import knex from '../database/knex';
 import { RegisterRequest, LoginRequest, AuthUser } from '../types/auth';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret'; // USE ENVIRONMENT VARIABLE IN PRODUCTION!
+const ALLOWED_EMAIL_DOMAINS = process.env.ALLOWED_EMAIL_DOMAINS ? process.env.ALLOWED_EMAIL_DOMAINS.split(',').map(d => d.trim()) : [];
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -13,6 +14,12 @@ export const register = async (req: Request, res: Response) => {
 
     if (!username || !email || !password || !roleName) {
       return res.status(400).json({ message: 'Por favor, preencha todos os campos obrigatórios.' });
+    }
+
+    // Validate email domain
+    const emailDomain = email.split('@')[1];
+    if (!ALLOWED_EMAIL_DOMAINS.includes(`@${emailDomain}`)) {
+      return res.status(403).json({ message: 'Não autorizado: o domínio do e-mail não é permitido para cadastro.' });
     }
 
     // Check if user already exists
@@ -54,6 +61,7 @@ export const register = async (req: Request, res: Response) => {
       email,
       password_hash,
       role_id: role.id,
+      is_approved: false, // Novo usuário não aprovado por padrão
       created_at: new Date(),
       updated_at: new Date(),
     }).returning(['id', 'username', 'email', 'role_id']);
@@ -93,6 +101,11 @@ export const login = async (req: Request, res: Response) => {
 
     if (!user) {
       return res.status(400).json({ message: 'Email ou senha inválidos.' });
+    }
+
+    // Check if user is approved
+    if (!user.is_approved) {
+      return res.status(403).json({ message: 'Sua conta ainda não foi aprovada por um administrador.' });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);

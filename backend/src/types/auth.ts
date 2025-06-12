@@ -4,6 +4,7 @@ export interface User {
   email: string;
   password_hash: string;
   role_id: string; // UUID da tabela roles
+  is_approved: boolean; // Nova coluna
   created_at: Date;
   updated_at: Date;
 }
