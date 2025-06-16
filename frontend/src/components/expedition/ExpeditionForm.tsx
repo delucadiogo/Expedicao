@@ -269,7 +269,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
         responsiblePosition: initialData.responsiblePosition || '',
         products: initialData.products,
         qualityControl: {
-          responsibleName: qualityResponsible?.id || '',
+          responsibleName: qualityResponsible?.name || '',
           approvalStatus: initialData.qualityControl.approvalStatus || 'pendente',
           justification: initialData.qualityControl.justification || '',
           digitalSignature: initialData.qualityControl.digitalSignature || '',
@@ -755,7 +755,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
           )}
 
           <ProductDialog
-              open={isProductDialogOpen}
+              isOpen={isProductDialogOpen}
               onClose={(open) => {
                 setIsProductDialogOpen(open);
                 if (!open) {
@@ -903,9 +903,14 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
                 name="dateTime"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Data/Hora da Expedição</FormLabel>
+                    <FormLabel>Data/Hora de Expedição</FormLabel>
                     <FormControl>
-                      <Input type="datetime-local" {...field} />
+                      <Input
+                        type="datetime-local"
+                        {...field}
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -918,7 +923,12 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
                   <FormItem>
                     <FormLabel>Data/Hora de Chegada do Caminhão (Opcional)</FormLabel>
                     <FormControl>
-                      <Input type="datetime-local" {...field} />
+                      <Input
+                        type="datetime-local"
+                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value || null)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -929,10 +939,10 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
                 name="observations"
                 render={({ field }) => (
                   <FormItem className="md:col-span-2">
-                    <FormLabel>Observações do Status da Expedição</FormLabel>
+                    <FormLabel>Observações (Opcional)</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Adicione observações gerais sobre o status da expedição..."
+                        placeholder="Adicione quaisquer observações..."
                         {...field}
                         value={field.value || ''}
                       />
@@ -945,17 +955,70 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
           </CardContent>
         </Card>
 
-        <NewTruckDialog isOpen={isNewTruckDialogOpen} onClose={() => setIsNewTruckDialogOpen(false)} onSuccess={() => truckService.getAll().then(setTrucks)} />
-        <NewDriverDialog isOpen={isNewDriverDialogOpen} onClose={() => setIsNewDriverDialogOpen(false)} onSuccess={() => driverService.getAll().then(setDrivers)} />
-        <NewTransportCompanyDialog isOpen={isNewTransportCompanyDialogOpen} onClose={() => setIsNewTransportCompanyDialogOpen(false)} onSuccess={() => transportCompanyService.getAll().then(setTransportCompanies)} />
-        <NewSupplierDialog isOpen={isNewSupplierDialogOpen} onClose={() => setIsNewSupplierDialogOpen(false)} onSuccess={() => supplierService.getAll().then(setSuppliers)} />
-        <NewExpeditionResponsibleDialog isOpen={isNewExpeditionResponsibleDialogOpen} onClose={() => setIsNewExpeditionResponsibleDialogOpen(false)} onSuccess={() => expeditionResponsibleService.getAll().then(setExpeditionResponsibles)} />
-        <NewQualityResponsibleDialog isOpen={isNewQualityResponsibleDialogOpen} onClose={() => setIsNewQualityResponsibleDialogOpen(false)} onSuccess={() => qualityResponsibleService.getAll().then(setQualityResponsibles)} />
-        <NewProductDialog isOpen={isNewProductDialogOpen} onClose={() => setIsNewProductDialogOpen(false)} onSuccess={() => productCatalogService.getAll().then(setProductCatalog)} />
+        <NewTruckDialog
+          isOpen={isNewTruckDialogOpen}
+          onClose={() => setIsNewTruckDialogOpen(false)}
+          onSuccess={() => {
+            setIsNewTruckDialogOpen(false);
+            void fetchTrucks();
+          }}
+        />
 
-        <Button type="submit" className="w-full">
-          {initialData ? 'Salvar Alterações' : 'Cadastrar Expedição'}
-        </Button>
+        <NewDriverDialog
+          isOpen={isNewDriverDialogOpen}
+          onClose={() => setIsNewDriverDialogOpen(false)}
+          onSuccess={() => {
+            setIsNewDriverDialogOpen(false);
+            void fetchDrivers();
+          }}
+        />
+
+        <NewTransportCompanyDialog
+          isOpen={isNewTransportCompanyDialogOpen}
+          onClose={() => setIsNewTransportCompanyDialogOpen(false)}
+          onSuccess={() => {
+            setIsNewTransportCompanyDialogOpen(false);
+            void fetchTransportCompanies();
+          }}
+        />
+
+        <NewSupplierDialog
+          isOpen={isNewSupplierDialogOpen}
+          onClose={() => setIsNewSupplierDialogOpen(false)}
+          onSuccess={() => {
+            setIsNewSupplierDialogOpen(false);
+            void fetchSuppliers();
+          }}
+        />
+
+        <NewExpeditionResponsibleDialog
+          isOpen={isNewExpeditionResponsibleDialogOpen}
+          onClose={() => setIsNewExpeditionResponsibleDialogOpen(false)}
+          onSuccess={() => {
+            setIsNewExpeditionResponsibleDialogOpen(false);
+            void fetchExpeditionResponsibles();
+          }}
+        />
+
+        <NewQualityResponsibleDialog
+          isOpen={isNewQualityResponsibleDialogOpen}
+          onClose={() => setIsNewQualityResponsibleDialogOpen(false)}
+          onSuccess={() => {
+            setIsNewQualityResponsibleDialogOpen(false);
+            void fetchQualityResponsibles();
+          }}
+        />
+
+        <NewProductDialog
+          isOpen={isNewProductDialogOpen}
+          onClose={() => setIsNewProductDialogOpen(false)}
+          onSuccess={() => {
+            setIsNewProductDialogOpen(false);
+            void fetchProductCatalog();
+          }}
+        />
+
+        <Button type="submit" className="w-full">Salvar Expedição</Button>
       </form>
     </Form>
   );
