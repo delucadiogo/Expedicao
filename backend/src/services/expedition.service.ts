@@ -128,6 +128,7 @@ export class ExpeditionService {
       `;
 
       const result = await pool.query(query);
+      console.log('Resultado do getStats do backend:', result.rows[0]);
       return result.rows[0];
     } catch (error) {
       console.error('Erro ao buscar estatísticas no service:', error); // Log detalhado

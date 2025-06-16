@@ -51,7 +51,15 @@ export function useExpedition() {
       setLoading(true);
       setError(null);
       const data = await expeditionService.getStats();
-      setStats(data);
+      console.log('Dados de estatísticas recebidos do serviço:', data);
+      setStats({
+        total: data.total,
+        pending: data.pending,
+        inAnalysis: data.in_analysis,
+        approved: data.approved,
+        rejected: data.rejected,
+        retained: data.retained,
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar estatísticas');
       toast({

@@ -56,7 +56,7 @@ export default function Dashboard() {
             <CardTitle className="text-sm font-medium">Em Análise</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.inAnalysis}</div>
+            <div className="text-2xl font-bold">{String(stats.inAnalysis)}</div>
           </CardContent>
         </Card>
         <Card>
