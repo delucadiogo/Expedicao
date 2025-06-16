@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Trash2 } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 import { ExpeditionStatus, Product, CreateExpeditionDTO, Expedition } from '@/types/expedition';
 import ProductDialog from './ProductDialog';
 import ProductList from './ProductList';
@@ -398,7 +399,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
         return p;
       });
     } else {
-      updatedProducts = [...products, { ...product, id: Date.now().toString() }];
+      updatedProducts = [...products, { ...product, id: uuidv4() }];
       console.log('handleAddProduct: added new product', updatedProducts);
     }
     setProducts(updatedProducts);
