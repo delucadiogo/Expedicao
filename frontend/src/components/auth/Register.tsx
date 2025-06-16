@@ -32,9 +32,9 @@ const Register: React.FC = () => {
       if (success) {
         toast({
           title: "Cadastro realizado com sucesso",
-          description: "Você será redirecionado para a página inicial.",
+          description: "Seu cadastro foi realizado com sucesso e está aguardando aprovação. Você será redirecionado para a página de login.",
         });
-        navigate('/');
+        navigate('/login');
       } else {
         setError('Erro ao cadastrar usuário. Verifique se o email já está em uso ou tente novamente.');
         toast({

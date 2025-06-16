@@ -18,7 +18,7 @@ export const register = async (req: Request, res: Response) => {
 
     // Validate email domain
     const emailDomain = email.split('@')[1];
-    if (!ALLOWED_EMAIL_DOMAINS.includes(`@${emailDomain}`)) {
+    if (!ALLOWED_EMAIL_DOMAINS.includes(emailDomain)) {
       return res.status(403).json({ message: 'Não autorizado: o domínio do e-mail não é permitido para cadastro.' });
     }
 

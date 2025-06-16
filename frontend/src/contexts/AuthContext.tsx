@@ -90,20 +90,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        const { user: authUser, token } = data;
-
-        const frontendUser: User = {
-          id: authUser.id,
-          username: authUser.username,
-          email: authUser.email,
-          role: authUser.role,
-        };
-
-        setUser(frontendUser);
-        setIsAuthenticated(true);
-        localStorage.setItem('user', JSON.stringify(frontendUser));
-        localStorage.setItem('token', token);
         return true;
       } else {
         const errorData = await response.json();

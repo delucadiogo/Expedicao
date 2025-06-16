@@ -27,6 +27,11 @@ async function fetchAPI<T>(
     throw new Error(error.message || 'Erro na requisição');
   }
 
+  // Se a resposta for 204 (No Content), retorna undefined
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
   return response.json();
 }
 
@@ -69,7 +74,7 @@ export const expeditionService = {
 
   // Deletar expedição
   delete: (id: string) =>
-    fetchAPI<void>(`/expeditions/${id}`, {
+    fetchAPI<void | undefined>(`/expeditions/${id}`, {
       method: 'DELETE',
     }),
 

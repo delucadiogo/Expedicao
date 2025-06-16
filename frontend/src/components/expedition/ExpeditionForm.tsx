@@ -243,7 +243,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
         observations: initialData?.qualityControl?.observations || '',
       },
       status: initialData?.status || 'pendente',
-      dateTime: initialData?.dateTime ? formatDateForInput(initialData.dateTime) : formatDateForInput(new Date().toISOString()),
+      dateTime: initialData?.dateTime ? formatDateTimeForForm(initialData.dateTime) : formatDateTimeForForm(new Date().toISOString()),
       arrivalDateTime: initialData?.arrivalDateTime ? formatDateTimeForForm(initialData.arrivalDateTime) : '',
       observations: initialData?.observations || '',
     },
@@ -276,7 +276,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
           observations: initialData.qualityControl.observations || '',
         },
         status: initialData.status || 'pendente',
-        dateTime: initialData.dateTime ? formatDateForInput(initialData.dateTime) : formatDateForInput(new Date().toISOString()),
+        dateTime: initialData.dateTime ? formatDateTimeForForm(initialData.dateTime) : formatDateTimeForForm(new Date().toISOString()),
         arrivalDateTime: initialData.arrivalDateTime ? formatDateTimeForForm(initialData.arrivalDateTime) : '',
         observations: initialData.observations || '',
       });
