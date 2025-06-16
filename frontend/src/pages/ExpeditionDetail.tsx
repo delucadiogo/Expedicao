@@ -5,7 +5,7 @@ import { Expedition, Product, QualityControl, Rejection } from '@/types/expediti
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Printer } from 'lucide-react';
+import { Printer, Calendar, Truck, User, Building2, Package, CheckCircle, XCircle, Clock, MapPin, Scale } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ExpeditionDetail() {
@@ -93,6 +93,24 @@ export default function ExpeditionDetail() {
     return <div className="text-center py-8 text-gray-500">Expedição não encontrada.</div>;
   }
 
+  const renderField = (label: string, value: string | number | undefined, Icon?: React.ElementType) => {
+    return value ? (
+      <div className="flex items-center space-x-2 print:text-xs print:leading-tight">
+        {Icon && <Icon className="h-4 w-4 text-muted-foreground print:hidden" />}
+        <strong>{label}:</strong> <span>{value}</span>
+      </div>
+    ) : null;
+  };
+
+  const renderDateField = (label: string, dateString: string | undefined, Icon?: React.ElementType) => {
+    return dateString ? (
+      <div className="flex items-center space-x-2 print:text-xs print:leading-tight">
+        {Icon && <Icon className="h-4 w-4 text-muted-foreground print:hidden" />}
+        <strong>{label}:</strong> <span>{new Date(dateString).toLocaleString()}</span>
+      </div>
+    ) : null;
+  };
+
   return (
     <>
       <div className="container mx-auto px-4 py-6 space-y-6 print:container print:mx-0 print:px-0 print:py-0">
@@ -127,20 +145,18 @@ export default function ExpeditionDetail() {
               </div>
             </CardHeader>
             <CardContent className="print:p-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:gap-x-1 print:gap-y-0.5">
-                <p className="print:text-xs print:leading-tight"><strong>Número:</strong> {expedition.expeditionNumber}</p>
-                <p className="print:text-xs print:leading-tight"><strong>Data/Hora:</strong> {new Date(expedition.dateTime).toLocaleString()}</p>
-                <div className="print:text-xs print:leading-tight"><strong>Status:</strong> <Badge className={getStatusColor(expedition.status)}>{formatStatus(expedition.status)}</Badge></div>
-                <p className="print:text-xs print:leading-tight"><strong>Criado em:</strong> {new Date(expedition.createdAt).toLocaleString()}</p>
-                <p className="print:text-xs print:leading-tight"><strong>Criado por:</strong> {expedition.createdBy}</p>
-                {expedition.updatedAt && <p className="print:text-xs print:leading-tight"><strong>Atualizado em:</strong> {new Date(expedition.updatedAt).toLocaleString()}</p>}
-                {expedition.updatedBy && <p className="print:text-xs print:leading-tight"><strong>Atualizado por:</strong> {expedition.updatedBy}</p>}
-                {expedition.arrivalDateTime && (
-                  <p className="print:text-xs print:leading-tight"><strong>Chegada do Caminhão:</strong> {new Date(expedition.arrivalDateTime).toLocaleString()}</p>
-                )}
-                {expedition.observations && (
-                  <p className="print:text-xs print:leading-tight"><strong>Observações da Expedição:</strong> {expedition.observations}</p>
-                )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 print:gap-x-1 print:gap-y-0.5">
+                {renderField('Número', expedition.expeditionNumber, Package)}
+                {renderDateField('Data/Hora', expedition.dateTime, Calendar)}
+                <div className="flex items-center space-x-2 print:text-xs print:leading-tight">
+                  <Badge className={getStatusColor(expedition.status)}>{formatStatus(expedition.status)}</Badge>
+                </div>
+                {renderDateField('Criado em', expedition.createdAt, Calendar)}
+                {renderField('Criado por', expedition.createdBy, User)}
+                {renderDateField('Atualizado em', expedition.updatedAt, Calendar)}
+                {renderField('Atualizado por', expedition.updatedBy, User)}
+                {renderDateField('Chegada do Caminhão', expedition.arrivalDateTime, Truck)}
+                {renderField('Observações da Expedição', expedition.observations)}
               </div>
             </CardContent>
           </Card>
@@ -150,11 +166,11 @@ export default function ExpeditionDetail() {
               <CardTitle className="print:text-sm print:mb-0">Informações de Transporte</CardTitle>
             </CardHeader>
             <CardContent className="print:p-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:gap-x-1 print:gap-y-0.5">
-                <p className="print:text-xs print:leading-tight"><strong>Placa do Caminhão:</strong> {expedition.truckPlate}</p>
-                <p className="print:text-xs print:leading-tight"><strong>Nome do Motorista:</strong> {expedition.driverName}</p>
-                <p className="print:text-xs print:leading-tight"><strong>Documento do Motorista:</strong> {expedition.driverDocument}</p>
-                {expedition.transportCompany && <p className="print:text-xs print:leading-tight"><strong>Empresa de Transporte:</strong> {expedition.transportCompany}</p>}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 print:gap-x-1 print:gap-y-0.5">
+                {renderField('Placa do Caminhão', expedition.truckPlate, Truck)}
+                {renderField('Nome do Motorista', expedition.driverName, User)}
+                {renderField('Documento do Motorista', expedition.driverDocument)}
+                {renderField('Empresa de Transporte', expedition.transportCompany, Building2)}
               </div>
             </CardContent>
           </Card>
@@ -164,9 +180,9 @@ export default function ExpeditionDetail() {
               <CardTitle className="print:text-sm print:mb-0">Informações do Fornecedor</CardTitle>
             </CardHeader>
             <CardContent className="print:p-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:gap-x-1 print:gap-y-0.5">
-                <p className="print:text-xs print:leading-tight"><strong>Nome do Fornecedor:</strong> {expedition.supplierName}</p>
-                <p className="print:text-xs print:leading-tight"><strong>Documento do Fornecedor:</strong> {expedition.supplierDocument}</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 print:gap-x-1 print:gap-y-0.5">
+                {renderField('Nome do Fornecedor', expedition.supplierName, Building2)}
+                {renderField('Documento do Fornecedor', expedition.supplierDocument)}
               </div>
             </CardContent>
           </Card>
@@ -176,9 +192,9 @@ export default function ExpeditionDetail() {
               <CardTitle className="print:text-sm print:mb-0">Responsável pela Expedição</CardTitle>
             </CardHeader>
             <CardContent className="print:p-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:gap-x-1 print:gap-y-0.5">
-                <p className="print:text-xs print:leading-tight"><strong>Nome do Responsável:</strong> {expedition.expeditionResponsible}</p>
-                {expedition.responsiblePosition && <p className="print:text-xs print:leading-tight"><strong>Cargo/Setor:</strong> {expedition.responsiblePosition}</p>}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 print:gap-x-1 print:gap-y-0.5">
+                {renderField('Nome do Responsável', expedition.expeditionResponsible, User)}
+                {renderField('Cargo/Setor', expedition.responsiblePosition)}
               </div>
             </CardContent>
           </Card>
@@ -232,13 +248,15 @@ export default function ExpeditionDetail() {
               <CardTitle className="print:text-sm print:mb-0">Controle de Qualidade</CardTitle>
             </CardHeader>
             <CardContent className="print:p-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:gap-x-1 print:gap-y-0.5">
-                <p className="print:text-xs print:leading-tight"><strong>Responsável:</strong> {expedition.qualityControl.responsibleName}</p>
-                {expedition.qualityControl.analysisDateTime && <p className="print:text-xs print:leading-tight"><strong>Data/Hora da Análise:</strong> {new Date(expedition.qualityControl.analysisDateTime).toLocaleString()}</p>}
-                <div className="print:text-xs print:leading-tight"><strong>Status de Aprovação:</strong> <Badge className={getStatusColor(expedition.qualityControl.approvalStatus)}>{formatStatus(expedition.qualityControl.approvalStatus)}</Badge></div>
-                {expedition.qualityControl.justification && <p className="print:text-xs print:leading-tight"><strong>Justificativa:</strong> {expedition.qualityControl.justification}</p>}
-                {expedition.qualityControl.digitalSignature && <p className="print:text-xs print:leading-tight"><strong>Assinatura Digital:</strong> {expedition.qualityControl.digitalSignature}</p>}
-                {expedition.qualityControl.observations && <p className="print:text-xs print:leading-tight"><strong>Observações:</strong> {expedition.qualityControl.observations}</p>}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 print:gap-x-1 print:gap-y-0.5">
+                {renderField('Responsável', expedition.qualityControl.responsibleName, User)}
+                {renderDateField('Data/Hora da Análise', expedition.qualityControl.analysisDateTime, Calendar)}
+                <div className="flex items-center space-x-2 print:text-xs print:leading-tight">
+                  <strong>Status de Aprovação:</strong> <Badge className={getStatusColor(expedition.qualityControl.approvalStatus)}>{formatStatus(expedition.qualityControl.approvalStatus)}</Badge>
+                </div>
+                {renderField('Justificativa', expedition.qualityControl.justification)}
+                {renderField('Assinatura Digital', expedition.qualityControl.digitalSignature)}
+                {renderField('Observações', expedition.qualityControl.observations)}
               </div>
             </CardContent>
           </Card>
@@ -249,35 +267,36 @@ export default function ExpeditionDetail() {
                 <CardTitle className="print:text-sm print:mb-0">Informações de Rejeição</CardTitle>
               </CardHeader>
               <CardContent className="print:p-1">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:gap-x-1 print:gap-y-0.5">
-                  <p className="print:text-xs print:leading-tight"><strong>Motivo:</strong> {expedition.rejection.reason}</p>
-                  <p className="print:text-xs print:leading-tight"><strong>Enviado para Suprimentos:</strong> {expedition.rejection.sentToSupplies ? 'Sim' : 'Não'}</p>
-                  {expedition.rejection.suppliesDateTime && <p className="print:text-xs print:leading-tight"><strong>Data/Hora Suprimentos:</strong> {new Date(expedition.rejection.suppliesDateTime).toLocaleString()}</p>}
-                  {expedition.rejection.suppliesResponsible && <p className="print:text-xs print:leading-tight"><strong>Responsável Suprimentos:</strong> {expedition.rejection.suppliesResponsible}</p>}
-                  <p className="print:text-xs print:leading-tight"><strong>Carga Retida:</strong> {expedition.rejection.cargoRetained ? 'Sim' : 'Não'}</p>
-                  {expedition.rejection.retainedQuantity && <p className="print:text-xs print:leading-tight"><strong>Quantidade Retida:</strong> {expedition.rejection.retainedQuantity}</p>}
-                  {expedition.rejection.retentionLocation && <p className="print:text-xs print:leading-tight"><strong>Local de Retenção:</strong> {expedition.rejection.retentionLocation}</p>}
-                  {expedition.rejection.correctiveActions && <p className="print:text-xs print:leading-tight"><strong>Ações Corretivas:</strong> {expedition.rejection.correctiveActions}</p>}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 print:gap-x-1 print:gap-y-0.5">
+                  {renderField('Motivo', expedition.rejection.reason)}
+                  {renderField('Enviado para Suprimentos', expedition.rejection.sentToSupplies ? 'Sim' : 'Não', CheckCircle)}
+                  {renderDateField('Data/Hora Suprimentos', expedition.rejection.suppliesDateTime, Calendar)}
+                  {renderField('Responsável Suprimentos', expedition.rejection.suppliesResponsible, User)}
+                  {renderField('Carga Retida', expedition.rejection.cargoRetained ? 'Sim' : 'Não', XCircle)}
+                  {renderField('Quantidade Retida', expedition.rejection.retainedQuantity, Scale)}
+                  {renderField('Local de Retenção', expedition.rejection.retentionLocation, MapPin)}
+                  {renderField('Ações Corretivas', expedition.rejection.correctiveActions)}
                 </div>
               </CardContent>
             </Card>
           )}
 
+          {/* Seções de Assinatura */}
           <div className="mt-8 print:mt-1 print:mb-0">
             <div className="border-t pt-8 print:pt-1">
-              <div className="grid grid-cols-2 gap-8 print:gap-x-1 print:gap-y-0.5">
+              <div className="grid grid-cols-2 gap-x-8 gap-y-2 print:gap-x-1 print:gap-y-0.5">
                 <div>
                   <p className="font-medium print:text-xs print:leading-tight">Responsável da Expedição</p>
                   <div className="border-t pt-2 print:mt-1 print:pt-0.5">
-                    <p className="print:text-xs print:leading-tight">{expedition.expeditionResponsible}</p>
-                    {expedition.responsiblePosition && <p className="print:text-xs print:leading-tight"><strong>Cargo/Setor:</strong> {expedition.responsiblePosition}</p>}
+                    {renderField('', expedition.expeditionResponsible, User)}
+                    {renderField('Cargo/Setor', expedition.responsiblePosition)}
                   </div>
                 </div>
                 <div>
                   <p className="font-medium print:text-xs print:leading-tight">Responsável da Qualidade</p>
                   <div className="border-t pt-2 print:mt-1 print:pt-0.5">
-                    <p className="print:text-xs print:leading-tight">{expedition.qualityControl.responsibleName}</p>
-                    {expedition.qualityControl.digitalSignature && <p className="print:text-xs print:leading-tight">Assinatura: {expedition.qualityControl.digitalSignature}</p>}
+                    {renderField('', expedition.qualityControl.responsibleName, User)}
+                    {renderField('Assinatura', expedition.qualityControl.digitalSignature)}
                   </div>
                 </div>
               </div>
@@ -310,7 +329,7 @@ export default function ExpeditionDetail() {
           .print\\:mb-0 { margin-bottom: 0 !important; }
           .print\\:mt-0 { margin-top: 0 !important; }
           .print\\:pt-0 { padding-top: 0 !important; }
-          .print\\:leading-tight { line-height: 1.2 !important; }
+          .print\\:leading-tight { line-height: 1.2 !important; } /* Ajuste o line-height */
 
           .fixed.inset-0 {
             position: static !important;
@@ -329,27 +348,30 @@ export default function ExpeditionDetail() {
             width: 100% !important;
             max-width: none !important;
             height: auto !important;
-            padding: 0;
+            padding: 0; /* Ajustar conforme necessário para o conteúdo dentro da estrutura do Card */
           }
 
+          /* General A4 adjustments */
           @page {
             size: A4;
-            margin: 1cm;
+            margin: 1cm; /* Margens A4 reintroduzidas */
           }
 
           h1, h2, h3, h4, h5, h6 { page-break-after: avoid; margin: 0; padding: 0; }
           p { page-break-inside: avoid; margin: 0; padding: 0; orphans: 3; widows: 3;}
           table { page-break-inside: auto; }
-          tr { page-break-inside: avoid; }
+          tr { page-break-inside: avoid; /* page-break-after: auto; */ }
           thead { display: table-header-group; }
           tfoot { display: table-footer-group; }
 
+          /* Specific adjustments for cards/sections */
           .Card {
-            page-break-inside: avoid;
-            margin-bottom: 0.5rem;
+            page-break-inside: avoid; /* Reaplicado */
+            margin-bottom: 0.5rem; /* Espaço entre cards reintroduzido */
             flex-shrink: 0 !important;
           }
 
+          /* Force new page for products if list is long */
           .CardTitle:has(+ .CardContent .space-y-4) {
             page-break-before: auto;
           }
