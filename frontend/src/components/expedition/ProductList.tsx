@@ -86,6 +86,7 @@ export default function ProductList({ products, onEdit, onDelete }: ProductListP
                             variant="outline"
                             size="sm"
                             onClick={() => onEdit(product)}
+                            type="button"
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -93,6 +94,7 @@ export default function ProductList({ products, onEdit, onDelete }: ProductListP
                             variant="outline"
                             size="sm"
                             onClick={() => onDelete(product)}
+                            type="button"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

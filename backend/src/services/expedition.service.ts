@@ -209,8 +209,8 @@ export class ExpeditionService {
             product.code,
             Number(product.quantity),
             product.unit,
-            product.batch,
-            product.expiryDate,
+            (product.batch === '' || product.batch === undefined) ? null : product.batch,
+            (product.expiryDate === '' || product.expiryDate === undefined) ? null : product.expiryDate,
             product.status,
             product.observations
           ];
@@ -278,6 +278,7 @@ export class ExpeditionService {
 
   // Atualizar expedição
   async update(id: string, data: UpdateExpeditionDTO): Promise<Expedition | null> {
+    console.log('Received data in backend ExpeditionService.update:', data);
     const client = await pool.connect();
     
     try {
@@ -292,7 +293,7 @@ export class ExpeditionService {
 
       for (const [key, value] of Object.entries(data)) {
         if (key !== 'products' && key !== 'qualityControl' && key !== 'rejection') {
-          updateFields.push(`${key} = $${paramCount}`);
+          updateFields.push(`${this.toSnakeCase(key)} = $${paramCount}`);
           updateValues.push(value);
           paramCount++;
         }
@@ -311,22 +312,24 @@ export class ExpeditionService {
         `;
 
         updateValues.push(id);
+        console.log('Executing main expedition update query with values:', updateValues);
         const result = await client.query(updateQuery, updateValues);
+        console.log('Result from main expedition update:', result.rowCount);
 
         if ((result.rowCount ?? 0) === 0) {
+          await client.query('ROLLBACK');
           return null;
         }
-
-        return this.getById(id);
       }
 
       // Atualizar produtos se fornecidos
       if (data.products) {
-        // Remover produtos existentes
+        console.log('Products data received for update:', data.products);
+        // Remover produtos existentes associados a esta expedição para re-inserir (abordagem simplificada)
         const deleteProductsQuery = 'DELETE FROM products WHERE expedition_id = $1';
         await client.query(deleteProductsQuery, [id]);
 
-        // Inserir novos produtos
+        // Inserir todos os produtos da lista (incluindo os atualizados e os novos)
         const productQuery = `
           INSERT INTO products (
             id, expedition_id, name, code, quantity, unit,
@@ -336,14 +339,14 @@ export class ExpeditionService {
 
         for (const product of data.products) {
           const productValues = [
-            uuidv4(),
+            product.id, // Usa o ID existente do produto, ou um novo se for adição via frontend
             id,
             product.name,
             product.code,
             Number(product.quantity),
             product.unit,
-            product.batch,
-            product.expiryDate,
+            (product.batch === '' || product.batch === undefined) ? null : product.batch,
+            (product.expiryDate === '' || product.expiryDate === undefined) ? null : product.expiryDate,
             product.status,
             product.observations
           ];
@@ -460,6 +463,7 @@ export class ExpeditionService {
       await client.query('COMMIT');
       return this.getById(id);
     } catch (error) {
+      console.error('Erro ao atualizar expedição no service:', error);
       await client.query('ROLLBACK');
       throw error;
     } finally {
@@ -608,5 +612,9 @@ export class ExpeditionService {
     } finally {
       client.release();
     }
+  }
+
+  private toSnakeCase(str: string): string {
+    return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
   }
 } 

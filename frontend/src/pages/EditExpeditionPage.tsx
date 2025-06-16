@@ -57,7 +57,7 @@ const EditExpeditionPage: React.FC = () => {
         title: "Sucesso",
         description: "Expedição atualizada com sucesso!",
       });
-      navigate('/expeditions'); // Ou para a lista de expedições
+      navigate('/?tab=list'); // Alterado para navegar para a lista de expedições na aba correta
     } catch (err) {
       toast({
         title: "Erro ao atualizar",

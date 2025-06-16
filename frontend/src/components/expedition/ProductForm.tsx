@@ -15,6 +15,7 @@ import NewProductDialog from '@/components/product/NewProductDialog';
 import { Plus } from 'lucide-react';
 
 const formSchema = z.object({
+  id: z.string().optional(),
   name: z.string().min(1, 'Nome é obrigatório'),
   code: z.string().min(1, 'Código é obrigatório'),
   quantity: z.string().min(1, 'Quantidade é obrigatória'),
@@ -35,6 +36,21 @@ export default function ProductForm({ product, onSubmit, onCancel }: ProductForm
   const [productCatalog, setProductCatalog] = React.useState<ProductCatalog[]>([]);
   const [isNewProductCatalogDialogOpen, setIsNewProductCatalogDialogOpen] = React.useState(false);
 
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      id: product?.id || undefined,
+      name: product?.name || '',
+      code: product?.code || '',
+      quantity: product?.quantity?.toString() || '',
+      unit: product?.unit || '',
+      batch: product?.batch || '',
+      expiryDate: product?.expiryDate || '',
+      status: product?.status || 'a_verificar',
+      observations: product?.observations || '',
+    },
+  });
+
   React.useEffect(() => {
     const fetchProductCatalog = async () => {
       try {
@@ -47,22 +63,35 @@ export default function ProductForm({ product, onSubmit, onCancel }: ProductForm
     fetchProductCatalog();
   }, []);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: product?.name || '',
-      code: product?.code || '',
-      quantity: product?.quantity?.toString() || '',
-      unit: product?.unit || '',
-      batch: product?.batch || '',
-      expiryDate: product?.expiryDate || '',
-      status: product?.status || 'a_verificar',
-      observations: product?.observations || '',
-    },
-  });
+  React.useEffect(() => {
+    console.log('ProductForm useEffect: product prop', product);
+    console.log('ProductForm useEffect: productCatalog', productCatalog);
+    if (product && productCatalog.length > 0) {
+      const catalogProduct = productCatalog.find(p => p.name === product.name);
+      console.log('ProductForm useEffect: found catalogProduct by name', catalogProduct);
+      if (catalogProduct) {
+        form.reset({
+          id: product.id,
+          name: catalogProduct.id,
+          code: catalogProduct.code,
+          quantity: product.quantity?.toString() || '',
+          unit: catalogProduct.unit,
+          batch: product.batch || '',
+          expiryDate: product.expiryDate || '',
+          status: product.status || 'a_verificar',
+          observations: product.observations || '',
+        });
+        console.log('ProductForm useEffect: form.name after reset', form.getValues().name);
+      } else {
+        console.warn(`Product '${product.name}' from expedition not found in product catalog during useEffect.`);
+      }
+    }
+  }, [product, productCatalog, form]);
 
   const onFormSubmit = async (values: z.infer<typeof formSchema>) => {
+    console.log('ProductForm onFormSubmit: values.name (should be ID)', values.name);
     const selectedProductCatalog = productCatalog.find(p => p.id === values.name);
+    console.log('ProductForm onFormSubmit: selectedProductCatalog result', selectedProductCatalog);
 
     if (!selectedProductCatalog) {
       alert('Produto não encontrado no catálogo. Por favor, selecione um produto válido ou cadastre um novo.');
@@ -70,11 +99,11 @@ export default function ProductForm({ product, onSubmit, onCancel }: ProductForm
     }
 
     onSubmit({
-      ...values,
+      id: values.id,
       name: selectedProductCatalog.name,
       code: selectedProductCatalog.code,
-      unit: selectedProductCatalog.unit,
       quantity: values.quantity,
+      unit: values.unit,
       batch: values.batch,
       expiryDate: values.expiryDate,
       status: values.status,
@@ -101,7 +130,6 @@ export default function ProductForm({ product, onSubmit, onCancel }: ProductForm
                         field.onChange(productId);
                         const selectedProduct = productCatalog.find(p => p.id === productId);
                         if (selectedProduct) {
-                          form.setValue('name', selectedProduct.name);
                           form.setValue('code', selectedProduct.code);
                           form.setValue('unit', selectedProduct.unit);
                         } else {

@@ -32,6 +32,10 @@ import NewSupplierDialog from '@/components/supplier/NewSupplierDialog';
 import NewExpeditionResponsibleDialog from '@/components/expeditionResponsible/NewExpeditionResponsibleDialog';
 import NewQualityResponsibleDialog from '@/components/qualityResponsible/NewQualityResponsibleDialog';
 import NewProductDialog from '@/components/product/NewProductDialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ProductCatalog } from '@/types/productCatalog';
+import { productCatalogService } from '@/lib/api';
+import { useNavigate } from 'react-router-dom';
 
 const formSchema = z.object({
   expeditionNumber: z.string().min(1, 'Número da expedição é obrigatório'),
@@ -51,6 +55,7 @@ const formSchema = z.object({
     digitalSignature: z.string().optional(),
     observations: z.string().optional(),
   }),
+  status: z.enum(['pendente', 'em_analise', 'aprovado', 'rejeitado', 'retido']),
 });
 
 interface ExpeditionFormProps {
@@ -78,6 +83,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
   const [isNewQualityResponsibleDialogOpen, setIsNewQualityResponsibleDialogOpen] = useState(false);
   const [isNewProductDialogOpen, setIsNewProductDialogOpen] = useState(false);
   const [productCatalog, setProductCatalog] = useState<ProductCatalog[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchDrivers = async () => {
@@ -194,6 +200,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
         digitalSignature: initialData?.qualityControl?.digitalSignature || '',
         observations: initialData?.qualityControl?.observations || '',
       },
+      status: initialData?.status || 'pendente',
     },
   });
 
@@ -223,6 +230,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
           digitalSignature: initialData.qualityControl.digitalSignature || '',
           observations: initialData.qualityControl.observations || '',
         },
+        status: initialData.status || 'pendente',
       });
       setProducts(initialData.products || []);
     }
@@ -246,10 +254,11 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
         ...values.qualityControl,
         responsibleName: selectedQualityResponsible?.name || '',
       },
-      products: products, // Garantir que os produtos sempre usem o estado local
+      products: form.getValues('products'),
     };
 
     if (initialData) {
+      console.log('Submitting data from ExpeditionForm:', dataToSend);
       await onSubmit(dataToSend);
     } else {
       console.log('Tentando criar expedição...');
@@ -265,7 +274,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
           expeditionResponsible: dataToSend.expeditionResponsible,
           responsiblePosition: dataToSend.responsiblePosition,
           products: dataToSend.products,
-          status: 'pendente',
+          status: dataToSend.status,
           qualityControl: {
             responsibleName: dataToSend.qualityControl.responsibleName,
             approvalStatus: dataToSend.qualityControl.approvalStatus,
@@ -296,11 +305,20 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
   };
 
   const handleAddProduct = (product: Product) => {
+    console.log('handleAddProduct: received product', product);
+    console.log('handleAddProduct: productToEdit', productToEdit);
     let updatedProducts;
     if (productToEdit) {
-      updatedProducts = products.map((p) => (p.id === product.id ? product : p));
+      updatedProducts = products.map((p) => {
+        if (p.id === product.id) {
+          console.log('handleAddProduct: found matching product for update', product);
+          return product; // Replace with the updated product
+        }
+        return p;
+      });
     } else {
       updatedProducts = [...products, { ...product, id: Date.now().toString() }];
+      console.log('handleAddProduct: added new product', updatedProducts);
     }
     setProducts(updatedProducts);
     form.setValue('products', updatedProducts);
@@ -309,8 +327,10 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
   };
 
   const handleEditProduct = (product: Product) => {
+    console.log('Attempting to edit product:', product);
     setProductToEdit(product);
     setIsProductDialogOpen(true);
+    console.log('isProductDialogOpen after set:', true);
   };
 
   const handleDeleteProduct = (product: Product) => {
@@ -710,10 +730,19 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
                 name="qualityControl.approvalStatus"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status de Aprovação</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
+                    <FormLabel>Status de Aprovação (Controle de Qualidade)</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="aprovado">Aprovado</SelectItem>
+                        <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                        <SelectItem value="pendente">Pendente</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -764,9 +793,46 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
         </CardContent>
       </Card>
 
-      <Button type="submit" className="w-full">
-          Criar Expedição
-      </Button>
+      <Card>
+        <CardHeader>
+          <CardTitle>Status da Expedição</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Status</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o status da expedição" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="pendente">Pendente</SelectItem>
+                    <SelectItem value="em_analise">Em Análise</SelectItem>
+                    <SelectItem value="aprovado">Aprovado</SelectItem>
+                    <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                    <SelectItem value="retido">Retido</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-end space-x-4">
+        <Button type="button" variant="outline" onClick={() => navigate('/?tab=list')}>
+          Voltar para a Lista
+        </Button>
+        <Button type="submit">
+          {initialData ? 'Atualizar Expedição' : 'Criar Expedição'}
+        </Button>
+      </div>
       </form>
 
       <NewTruckDialog
