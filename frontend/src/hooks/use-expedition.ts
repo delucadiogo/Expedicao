@@ -116,10 +116,7 @@ export function useExpedition() {
         expedition.id === id 
           ? { 
               ...expedition, 
-              ...data,
-              status: data.status || expedition.status,
-              updatedAt: new Date().toISOString(),
-              updatedBy: 'user.system',
+              ...updatedExpedition,
             }
           : expedition
       ));
@@ -128,7 +125,7 @@ export function useExpedition() {
         title: 'Sucesso',
         description: 'Expedição atualizada com sucesso',
       });
-      return data;
+      return updatedExpedition;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao atualizar expedição');
       toast({
@@ -140,7 +137,7 @@ export function useExpedition() {
     } finally {
       setLoading(false);
     }
-  }, [expeditions, toast, loadStats]);
+  }, [toast, loadStats]);
 
   // Deletar expedição
   const deleteExpedition = useCallback(async (id: string) => {

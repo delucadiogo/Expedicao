@@ -112,6 +112,7 @@ export class ExpeditionService {
     `;
 
     const result = await pool.query(query, values);
+    console.log('Resultado da query getAll (backend - FINAL):', result.rows); // Log para depuração
     return result.rows;
   }
 

@@ -70,7 +70,7 @@ export interface Expedition {
 export interface ExpeditionStats {
   total: number;
   pending: number;
-  inAnalysis: number;
+  in_analysis: number;
   approved: number;
   rejected: number;
   retained: number;

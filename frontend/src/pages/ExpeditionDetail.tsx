@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { expeditionService } from '@/lib/api';
 import { Expedition, Product, QualityControl, Rejection } from '@/types/expedition';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function ExpeditionDetail() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const [expedition, setExpedition] = useState<Expedition | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,6 +44,20 @@ export default function ExpeditionDetail() {
 
     fetchExpedition();
   }, [id, toast]);
+
+  // Efeito para acionar a impressão se o parâmetro 'print' estiver na URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('print') === 'true' && expedition && !loading) {
+      // Pequeno atraso para garantir que o DOM esteja renderizado
+      const timer = setTimeout(() => {
+        window.print();
+        // Limpa o parâmetro de impressão da URL para evitar impressões repetidas ao recarregar
+        navigate(location.pathname, { replace: true });
+      }, 100); 
+      return () => clearTimeout(timer);
+    }
+  }, [location.search, expedition, loading, navigate, location.pathname]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -80,7 +95,7 @@ export default function ExpeditionDetail() {
 
   return (
     <>
-      <div className="container mx-auto px-4 py-6 space-y-6">
+      <div className="container mx-auto px-4 py-6 space-y-6 print:container print:mx-0 print:px-0 print:py-0">
         <div className="flex items-center justify-between print:hidden">
           <h1 className="text-3xl font-bold">Detalhes da Expedição: {expedition.expeditionNumber}</h1>
           <div className="flex items-center space-x-2">
@@ -93,7 +108,6 @@ export default function ExpeditionDetail() {
           </div>
         </div>
 
-        {/* Conteúdo do relatório para impressão */}
         <div className="print:p-0 print:space-y-1">
           <div className="text-center print:py-2">
             <h1 className="text-2xl font-bold print:text-base print:mb-0.5">Relatório de Expedição</h1>
@@ -121,6 +135,12 @@ export default function ExpeditionDetail() {
                 <p className="print:text-xs print:leading-tight"><strong>Criado por:</strong> {expedition.createdBy}</p>
                 {expedition.updatedAt && <p className="print:text-xs print:leading-tight"><strong>Atualizado em:</strong> {new Date(expedition.updatedAt).toLocaleString()}</p>}
                 {expedition.updatedBy && <p className="print:text-xs print:leading-tight"><strong>Atualizado por:</strong> {expedition.updatedBy}</p>}
+                {expedition.arrivalDateTime && (
+                  <p className="print:text-xs print:leading-tight"><strong>Chegada do Caminhão:</strong> {new Date(expedition.arrivalDateTime).toLocaleString()}</p>
+                )}
+                {expedition.observations && (
+                  <p className="print:text-xs print:leading-tight"><strong>Observações da Expedição:</strong> {expedition.observations}</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -191,7 +211,7 @@ export default function ExpeditionDetail() {
                           <td className="px-1 py-0.5 whitespace-nowrap print:leading-tight">{product.quantity}</td>
                           <td className="px-1 py-0.5 whitespace-nowrap print:leading-tight">{product.unit}</td>
                           <td className="px-1 py-0.5 whitespace-nowrap print:leading-tight">{product.batch || '-'}</td>
-                          <td className="px-1 py-0.5 whitespace-nowrap print:leading-tight">{product.expiryDate || '-'}</td>
+                          <td className="px-1 py-0.5 whitespace-nowrap print:leading-tight">{product.expiryDate ? new Date(product.expiryDate).toLocaleDateString() : '-'}</td>
                           <td className="px-1 py-0.5 whitespace-nowrap print:leading-tight">
                             <Badge className={getStatusColor(product.status)}>{formatStatus(product.status)}</Badge>
                           </td>
@@ -243,7 +263,6 @@ export default function ExpeditionDetail() {
             </Card>
           )}
 
-          {/* Seções de Assinatura */}
           <div className="mt-8 print:mt-1 print:mb-0">
             <div className="border-t pt-8 print:pt-1">
               <div className="grid grid-cols-2 gap-8 print:gap-x-1 print:gap-y-0.5">
@@ -251,7 +270,7 @@ export default function ExpeditionDetail() {
                   <p className="font-medium print:text-xs print:leading-tight">Responsável da Expedição</p>
                   <div className="border-t pt-2 print:mt-1 print:pt-0.5">
                     <p className="print:text-xs print:leading-tight">{expedition.expeditionResponsible}</p>
-                    {expedition.responsiblePosition && <p className="print:text-xs print:leading-tight">{expedition.responsiblePosition}</p>}
+                    {expedition.responsiblePosition && <p className="print:text-xs print:leading-tight"><strong>Cargo/Setor:</strong> {expedition.responsiblePosition}</p>}
                   </div>
                 </div>
                 <div>
@@ -291,7 +310,7 @@ export default function ExpeditionDetail() {
           .print\\:mb-0 { margin-bottom: 0 !important; }
           .print\\:mt-0 { margin-top: 0 !important; }
           .print\\:pt-0 { padding-top: 0 !important; }
-          .print\\:leading-tight { line-height: 1.2 !important; } /* Ajuste o line-height */
+          .print\\:leading-tight { line-height: 1.2 !important; }
 
           .fixed.inset-0 {
             position: static !important;
@@ -310,30 +329,27 @@ export default function ExpeditionDetail() {
             width: 100% !important;
             max-width: none !important;
             height: auto !important;
-            padding: 0; /* Ajustar conforme necessário para o conteúdo dentro da estrutura do Card */
+            padding: 0;
           }
 
-          /* General A4 adjustments */
           @page {
             size: A4;
-            margin: 1cm; /* Margens A4 reintroduzidas */
+            margin: 1cm;
           }
 
           h1, h2, h3, h4, h5, h6 { page-break-after: avoid; margin: 0; padding: 0; }
           p { page-break-inside: avoid; margin: 0; padding: 0; orphans: 3; widows: 3;}
           table { page-break-inside: auto; }
-          tr { page-break-inside: avoid; /* page-break-after: auto; */ }
+          tr { page-break-inside: avoid; }
           thead { display: table-header-group; }
           tfoot { display: table-footer-group; }
 
-          /* Specific adjustments for cards/sections */
           .Card {
-            page-break-inside: avoid; /* Reaplicado */
-            margin-bottom: 0.5rem; /* Espaço entre cards reintroduzido */
+            page-break-inside: avoid;
+            margin-bottom: 0.5rem;
             flex-shrink: 0 !important;
           }
 
-          /* Force new page for products if list is long */
           .CardTitle:has(+ .CardContent .space-y-4) {
             page-break-before: auto;
           }
@@ -341,4 +357,4 @@ export default function ExpeditionDetail() {
       `}</style>
     </>
   );
-} 
+}

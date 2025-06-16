@@ -1,34 +1,17 @@
-import React from 'react';
-import { useExpeditionContext } from '@/contexts/ExpeditionContext';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft, Printer } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Printer, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Expedition, ExpeditionStatus } from '@/types/expedition';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface ExpeditionDetailsProps {
-  expeditionId: string;
+  expedition: Expedition;
   onPrintRequest: (expedition: Expedition) => void;
 }
 
-export default function ExpeditionDetails({ expeditionId, onPrintRequest }: ExpeditionDetailsProps) {
-  const { expeditions } = useExpeditionContext();
+export default function ExpeditionDetails({ expedition, onPrintRequest }: ExpeditionDetailsProps) {
   const navigate = useNavigate();
-
-  const expedition = expeditions.find(e => e.id === expeditionId);
-
-  if (!expedition) {
-    return (
-      <div className="flex flex-col items-center justify-center space-y-4">
-        <p>Expedição não encontrada</p>
-        <Button onClick={() => navigate('/?tab=list')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar
-        </Button>
-      </div>
-    );
-  }
 
   const getStatusColor = (status: ExpeditionStatus) => {
     switch (status) {
@@ -87,34 +70,81 @@ export default function ExpeditionDetails({ expeditionId, onPrintRequest }: Expe
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
-              <h3 className="font-medium mb-2">Informações do Transporte</h3>
-              <p>Placa: {expedition.truckPlate}</p>
-              <p>Motorista: {expedition.driverName}</p>
-              <p>Documento: {expedition.driverDocument}</p>
-              {expedition.transportCompany && (
-                <p>Empresa: {expedition.transportCompany}</p>
-              )}
-            </div>
-
-            <div>
-              <h3 className="font-medium mb-2">Informações do Fornecedor</h3>
-              <p>Nome: {expedition.supplierName}</p>
-              <p>CNPJ: {expedition.supplierDocument}</p>
-            </div>
-
-            <div>
-              <h3 className="font-medium mb-2">Responsável</h3>
-              <p>Nome: {expedition.expeditionResponsible}</p>
-              {expedition.responsiblePosition && (
-                <p>Cargo/Setor: {expedition.responsiblePosition}</p>
-              )}
+              <h3 className="font-medium mb-2">Informações Gerais</h3>
+              <p>Número: {expedition.expeditionNumber}</p>
+              <div>Status: <Badge className={getStatusColor(expedition.status)}>{formatStatus(expedition.status)}</Badge></div>
+              <p>Criado por: {expedition.createdBy}</p>
             </div>
 
             <div>
               <h3 className="font-medium mb-2">Data e Hora</h3>
-              <p>{new Date(expedition.dateTime).toLocaleString()}</p>
+              <p>Data/Hora: {new Date(expedition.dateTime).toLocaleString()}</p>
+              <p>Criado em: {new Date(expedition.createdAt).toLocaleString()}</p>
+              <p>Atualizado em: {new Date(expedition.updatedAt).toLocaleString()}</p>
+            </div>
+
+            {expedition.arrivalDateTime && (
+              <div>
+                <h3 className="font-medium mb-2">Chegada do Caminhão</h3>
+                <p>{new Date(expedition.arrivalDateTime).toLocaleString()}</p>
+              </div>
+            )}
+
+            {expedition.observations && (
+              <div className="md:col-span-2">
+                <h3 className="font-medium mb-2">Observações da Expedição</h3>
+                <p>{expedition.observations}</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Informações do Transporte</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <p>Placa do Caminhão: {expedition.truckPlate}</p>
+              <p>Motorista: {expedition.driverName}</p>
+              <p>Documento do Motorista: {expedition.driverDocument}</p>
+              {expedition.transportCompany && (
+                <p>Empresa de Transporte: {expedition.transportCompany}</p>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Informações do Fornecedor</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <p>Nome do Fornecedor: {expedition.supplierName}</p>
+              <p>Documento do Fornecedor: {expedition.supplierDocument}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Responsável pela Expedição</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <p>Nome do Responsável: {expedition.expeditionResponsible}</p>
+              {expedition.responsiblePosition && (
+                <p>Cargo/Setor: {expedition.responsiblePosition}</p>
+              )}
             </div>
           </div>
         </CardContent>
@@ -143,7 +173,7 @@ export default function ExpeditionDetails({ expeditionId, onPrintRequest }: Expe
                   <div>
                     <p>Status: {product.status}</p>
                     {product.observations && (
-                      <p className="text-sm text-gray-500">{product.observations}</p>
+                      <p className="text-sm text-gray-500">Observações: {product.observations}</p>
                     )}
                   </div>
                 </div>
