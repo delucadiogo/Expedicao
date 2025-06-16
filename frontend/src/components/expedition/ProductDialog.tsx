@@ -4,15 +4,15 @@ import ProductForm from './ProductForm';
 import { Product } from '@/types/expedition';
 
 interface ProductDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  isOpen: boolean;
+  onClose: (open: boolean) => void;
   product?: Product;
   onSubmit: (data: any) => void;
 }
 
-export default function ProductDialog({ open, onOpenChange, product, onSubmit }: ProductDialogProps) {
+export default function ProductDialog({ isOpen, onClose, product, onSubmit }: ProductDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{product ? 'Editar Produto' : 'Adicionar Produto'}</DialogTitle>
@@ -20,7 +20,7 @@ export default function ProductDialog({ open, onOpenChange, product, onSubmit }:
         <ProductForm
           product={product}
           onSubmit={onSubmit}
-          onCancel={() => onOpenChange(false)}
+          onCancel={() => onClose(false)}
         />
       </DialogContent>
     </Dialog>

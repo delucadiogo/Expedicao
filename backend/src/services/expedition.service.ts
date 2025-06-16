@@ -242,8 +242,8 @@ export class ExpeditionService {
           id, expedition_number, date_time, status,
           truck_plate, driver_name, driver_document, transport_company,
           expedition_responsible, responsible_position, supplier_name, supplier_document,
-          created_at, updated_at, created_by, observations
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+          created_at, updated_at, created_by, observations, arrival_datetime
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
         RETURNING *
       `;
 
@@ -263,7 +263,8 @@ export class ExpeditionService {
         now,
         now,
         data.createdBy || 'system',
-        data.observations || null
+        data.observations || null,
+        data.arrivalDateTime || null
       ];
 
       const expeditionResult = await client.query(expeditionQuery, expeditionValues);
@@ -376,9 +377,16 @@ export class ExpeditionService {
         paramCount++;
       }
 
+      // Tratar arrivalDateTime especificamente
+      if ('arrivalDateTime' in data) {
+        updateFields.push(`arrival_datetime = $${paramCount}`);
+        updateValues.push(data.arrivalDateTime || null); // Permite null
+        paramCount++;
+      }
+
       // Tratar os demais campos
       for (const [key, value] of Object.entries(data)) {
-        if (key !== 'products' && key !== 'qualityControl' && key !== 'rejection' && key !== 'observations') {
+        if (key !== 'products' && key !== 'qualityControl' && key !== 'rejection' && key !== 'observations' && key !== 'arrivalDateTime') {
           const snakeKey = this.toSnakeCase(key);
           updateFields.push(`${snakeKey} = $${paramCount}`);
           updateValues.push(value);

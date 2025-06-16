@@ -293,8 +293,10 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
     const selectedExpeditionResponsible = expeditionResponsibles.find(er => er.id === values.expeditionResponsible);
     const selectedQualityResponsible = qualityResponsibles.find(qr => qr.name === values.qualityControl.responsibleName);
 
-    // Garante que o arrivalDateTime seja formatado para ISOString apenas se existir
-    const arrivalDateTimeISO = values.arrivalDateTime ? new Date(values.arrivalDateTime).toISOString() : undefined;
+    // Garante que o arrivalDateTime seja formatado para ISOString apenas se existir e for uma data válida
+    const arrivalDateTimeISO = (values.arrivalDateTime && !isNaN(new Date(values.arrivalDateTime).getTime()))
+      ? new Date(values.arrivalDateTime).toISOString()
+      : null;
 
     const dataToSend = {
       ...values,
@@ -754,7 +756,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
 
           <ProductDialog
               open={isProductDialogOpen}
-              onOpenChange={(open) => {
+              onClose={(open) => {
                 setIsProductDialogOpen(open);
                 if (!open) {
                   setProductToEdit(undefined);
@@ -945,11 +947,11 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
 
         <NewTruckDialog isOpen={isNewTruckDialogOpen} onClose={() => setIsNewTruckDialogOpen(false)} onSuccess={() => truckService.getAll().then(setTrucks)} />
         <NewDriverDialog isOpen={isNewDriverDialogOpen} onClose={() => setIsNewDriverDialogOpen(false)} onSuccess={() => driverService.getAll().then(setDrivers)} />
-        <NewTransportCompanyDialog open={isNewTransportCompanyDialogOpen} onOpenChange={setIsNewTransportCompanyDialogOpen} onSuccess={() => transportCompanyService.getAll().then(setTransportCompanies)} />
-        <NewSupplierDialog open={isNewSupplierDialogOpen} onOpenChange={setIsNewSupplierDialogOpen} onSuccess={() => supplierService.getAll().then(setSuppliers)} />
-        <NewExpeditionResponsibleDialog open={isNewExpeditionResponsibleDialogOpen} onOpenChange={setIsNewExpeditionResponsibleDialogOpen} onSuccess={() => expeditionResponsibleService.getAll().then(setExpeditionResponsibles)} />
-        <NewQualityResponsibleDialog open={isNewQualityResponsibleDialogOpen} onOpenChange={setIsNewQualityResponsibleDialogOpen} onSuccess={() => qualityResponsibleService.getAll().then(setQualityResponsibles)} />
-        <NewProductDialog open={isNewProductDialogOpen} onOpenChange={setIsNewProductDialogOpen} onSuccess={() => productCatalogService.getAll().then(setProductCatalog)} />
+        <NewTransportCompanyDialog isOpen={isNewTransportCompanyDialogOpen} onClose={() => setIsNewTransportCompanyDialogOpen(false)} onSuccess={() => transportCompanyService.getAll().then(setTransportCompanies)} />
+        <NewSupplierDialog isOpen={isNewSupplierDialogOpen} onClose={() => setIsNewSupplierDialogOpen(false)} onSuccess={() => supplierService.getAll().then(setSuppliers)} />
+        <NewExpeditionResponsibleDialog isOpen={isNewExpeditionResponsibleDialogOpen} onClose={() => setIsNewExpeditionResponsibleDialogOpen(false)} onSuccess={() => expeditionResponsibleService.getAll().then(setExpeditionResponsibles)} />
+        <NewQualityResponsibleDialog isOpen={isNewQualityResponsibleDialogOpen} onClose={() => setIsNewQualityResponsibleDialogOpen(false)} onSuccess={() => qualityResponsibleService.getAll().then(setQualityResponsibles)} />
+        <NewProductDialog isOpen={isNewProductDialogOpen} onClose={() => setIsNewProductDialogOpen(false)} onSuccess={() => productCatalogService.getAll().then(setProductCatalog)} />
 
         <Button type="submit" className="w-full">
           {initialData ? 'Salvar Alterações' : 'Cadastrar Expedição'}
