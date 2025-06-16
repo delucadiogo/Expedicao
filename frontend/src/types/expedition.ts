@@ -54,6 +54,7 @@ export interface Expedition {
   createdBy: string;
   updatedBy: string;
   arrivalDateTime?: string;
+  observations?: string;
 }
 
 export interface ExpeditionStats {
@@ -63,6 +64,11 @@ export interface ExpeditionStats {
   approved: number;
   rejected: number;
   retained: number;
+  status: ExpeditionStatus;
+  dateTime: string;
+  arrivalDateTime?: string;
+  createdBy?: string;
+  observations?: string;
 }
 
 // DTOs para as requisições
@@ -83,6 +89,7 @@ export interface CreateExpeditionDTO {
   dateTime: string;
   arrivalDateTime?: string;
   createdBy?: string;
+  observations?: string;
 }
 
 export type UpdateExpeditionDTO = Partial<Omit<Expedition, 'id' | 'createdAt' | 'updatedAt' | 'updatedBy'>> & {

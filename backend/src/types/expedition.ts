@@ -64,6 +64,7 @@ export interface Expedition {
   updatedAt: string;
   createdBy: string;
   updatedBy?: string;
+  observations?: string;
 }
 
 export interface ExpeditionStats {
@@ -92,6 +93,7 @@ export interface CreateExpeditionDTO {
   rejection?: Rejection;
   dateTime: string;
   createdBy: string;
+  observations?: string;
 }
 
 export type UpdateExpeditionDTO = Partial<Omit<Expedition, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'> & { status?: ExpeditionStatus }>; 

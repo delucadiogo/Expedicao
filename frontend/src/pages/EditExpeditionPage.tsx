@@ -7,46 +7,47 @@ import { toast } from '@/hooks/use-toast';
 import { Expedition } from '@/types/expedition';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
+import { expeditionService } from '@/lib/api';
 
 const EditExpeditionPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { expeditions, updateExpedition, loading, error, loadExpeditions } = useExpeditionContext();
+  const { expeditions, updateExpedition, loading, error } = useExpeditionContext();
   const [currentExpedition, setCurrentExpedition] = useState<Expedition | null>(null);
   const [isLoadingExpedition, setIsLoadingExpedition] = useState(true);
 
   useEffect(() => {
-    if (id && expeditions.length === 0) {
-      // Se as expedições ainda não foram carregadas, tente carregá-las.
-      // Isso é importante caso o usuário acesse a URL de edição diretamente.
-      loadExpeditions();
-    }
-  }, [id, expeditions.length, loadExpeditions]);
-
-  useEffect(() => {
-    if (id && expeditions.length > 0) {
-      const foundExpedition = expeditions.find(exp => exp.id === id);
-      if (foundExpedition) {
-        setCurrentExpedition(foundExpedition);
-      } else {
+    const fetchExpedition = async () => {
+      if (!id) {
         toast({
-          title: "Expedição não encontrada",
-          description: "A expedição que você tentou editar não existe.",
+          title: "Erro",
+          description: "ID da expedição não fornecido.",
           variant: "destructive",
         });
-        navigate('/?tab=list'); // Redirecionar para a lista de expedições na aba correta
+        navigate('/?tab=list');
+        setIsLoadingExpedition(false);
+        return;
       }
-      setIsLoadingExpedition(false);
-    } else if (!id) {
-      toast({
-        title: "Erro",
-        description: "ID da expedição não fornecido.",
-        variant: "destructive",
-      });
-      navigate('/?tab=list'); // Redirecionar para a lista de expedições na aba correta
-      setIsLoadingExpedition(false);
-    }
-  }, [id, expeditions, navigate, toast]);
+
+      try {
+        setIsLoadingExpedition(true);
+        const data = await expeditionService.getById(id);
+        setCurrentExpedition(data);
+      } catch (err) {
+        console.error('Erro ao carregar expedição:', err);
+        toast({
+          title: "Expedição não encontrada",
+          description: "A expedição que você tentou editar não existe ou houve um erro ao carregá-la.",
+          variant: "destructive",
+        });
+        navigate('/?tab=list');
+      } finally {
+        setIsLoadingExpedition(false);
+      }
+    };
+
+    fetchExpedition();
+  }, [id, navigate, toast]);
 
   const handleUpdate = async (data: any) => {
     if (!id) return;

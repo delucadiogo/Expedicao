@@ -22,7 +22,8 @@ CREATE TABLE expeditions (
   created_at TIMESTAMP NOT NULL,
   updated_at TIMESTAMP NOT NULL,
   created_by VARCHAR(100) NOT NULL,
-  updated_by VARCHAR(100)
+  updated_by VARCHAR(100),
+  observations TEXT -- Novo campo para observações gerais da expedição
 );
 
 -- Comentário explicativo para o campo arrival_datetime

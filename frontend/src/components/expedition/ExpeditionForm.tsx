@@ -95,6 +95,7 @@ const formSchema = z.object({
   status: z.enum(['pendente', 'em_analise', 'aprovado', 'rejeitado', 'retido']),
   dateTime: z.string().optional(),
   arrivalDateTime: z.string().optional(),
+  observations: z.string().optional(),
 });
 
 interface ExpeditionFormProps {
@@ -242,6 +243,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
       status: initialData?.status || 'pendente',
       dateTime: initialData?.dateTime ? formatDateForInput(initialData.dateTime) : formatDateForInput(new Date().toISOString()),
       arrivalDateTime: initialData?.arrivalDateTime ? formatDateTimeForForm(initialData.arrivalDateTime) : '',
+      observations: initialData?.observations || '',
     },
   });
 
@@ -274,39 +276,57 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
         status: initialData.status || 'pendente',
         dateTime: initialData.dateTime ? formatDateForInput(initialData.dateTime) : formatDateForInput(new Date().toISOString()),
         arrivalDateTime: initialData.arrivalDateTime ? formatDateTimeForForm(initialData.arrivalDateTime) : '',
+        observations: initialData.observations || '',
       });
       setProducts(initialData.products || []);
     }
-  }, [initialData, form, drivers, transportCompanies, suppliers, expeditionResponsibles, qualityResponsibles]);
+  }, [initialData, drivers, transportCompanies, suppliers, expeditionResponsibles, qualityResponsibles, form]);
 
   const onSubmitForm = async (values: z.infer<typeof formSchema>) => {
-    // Converte a data e hora de chegada para ISO string para o backend
-    const arrivalDateTimeISO = values.arrivalDateTime ? new Date(values.arrivalDateTime).toISOString() : undefined;
+    console.log('Values on submission:', values);
 
-    // Encontrar os nomes correspondentes aos IDs selecionados
     const selectedDriver = drivers.find(d => d.id === values.driverName);
     const selectedTransportCompany = transportCompanies.find(tc => tc.id === values.transportCompany);
     const selectedSupplier = suppliers.find(s => s.id === values.supplierName);
     const selectedExpeditionResponsible = expeditionResponsibles.find(er => er.id === values.expeditionResponsible);
-    const selectedQualityResponsible = qualityResponsibles.find(qr => qr.id === values.qualityControl.responsibleName);
+    const selectedQualityResponsible = qualityResponsibles.find(qr => qr.name === values.qualityControl.responsibleName);
+
+    // Garante que o arrivalDateTime seja formatado para ISOString apenas se existir
+    const arrivalDateTimeISO = values.arrivalDateTime ? new Date(values.arrivalDateTime).toISOString() : undefined;
 
     const dataToSend = {
       ...values,
       driverName: selectedDriver?.name || '',
-      transportCompany: selectedTransportCompany?.name,
-      supplierName: selectedSupplier?.name || '',
+      driverDocument: selectedDriver?.document || values.driverDocument,
+      transportCompany: selectedTransportCompany?.name || values.transportCompany,
+      supplierName: selectedSupplier?.name || values.supplierName,
+      supplierDocument: selectedSupplier?.document || values.supplierDocument,
       expeditionResponsible: selectedExpeditionResponsible?.name || '',
+      responsiblePosition: selectedExpeditionResponsible?.position || values.responsiblePosition,
       qualityControl: {
         ...values.qualityControl,
         responsibleName: selectedQualityResponsible?.name || '',
+        observations: values.qualityControl.observations || undefined,
       },
       products: form.getValues('products'),
       arrivalDateTime: arrivalDateTimeISO,
+      observations: values.observations,
     };
+
+    console.log('dataToSend before service call:', dataToSend);
 
     if (initialData) {
       console.log('Submitting data from ExpeditionForm:', dataToSend);
-      await onSubmit(dataToSend);
+      try {
+        await onSubmit(dataToSend);
+        toast({
+          title: "Sucesso",
+          description: "Expedição atualizada com sucesso!",
+        });
+        navigate('/?tab=list'); // Redireciona para a lista após a atualização
+      } catch (error: any) {
+        console.error("Erro ao atualizar expedição:", error);
+      }
     } else {
       console.log('Tentando criar expedição...');
       try {
@@ -328,13 +348,15 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
             justification: dataToSend.qualityControl.justification,
             digitalSignature: dataToSend.qualityControl.digitalSignature,
             observations: dataToSend.qualityControl.observations,
-            analysisDateTime: undefined,
           },
           rejection: undefined,
           dateTime: new Date().toISOString(),
           arrivalDateTime: arrivalDateTimeISO,
           createdBy: undefined,
+          observations: dataToSend.observations,
         };
+
+        console.log('expeditionData before createExpedition:', expeditionData);
 
         await createExpedition(expeditionData);
         form.reset({
@@ -758,7 +780,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
                     <div className="flex items-center space-x-2">
                       <FormControl>
                         <Combobox
-                          options={qualityResponsibles.map(responsible => ({ label: responsible.name, value: responsible.id }))}
+                          options={qualityResponsibles.map(r => ({ label: r.name, value: r.name }))}
                           value={field.value}
                           onValueChange={field.onChange}
                           placeholder="Selecione ou digite o responsável..."
@@ -785,8 +807,8 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
                 name="qualityControl.approvalStatus"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status de Aprovação (Controle de Qualidade)</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormLabel>Status de Aprovação</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o status" />
@@ -807,24 +829,14 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
                 control={form.control}
                 name="qualityControl.justification"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Justificativa</FormLabel>
+                  <FormItem className="md:col-span-2">
+                    <FormLabel>Justificativa (se rejeitado)</FormLabel>
                     <FormControl>
-                      <Textarea {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="qualityControl.digitalSignature"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Assinatura Digital</FormLabel>
-                    <FormControl>
-                      <Input {...field} readOnly />
+                      <Textarea
+                        placeholder="Descreva a justificativa para a rejeição..."
+                        {...field}
+                        value={field.value || ''}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -835,85 +847,109 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
                 control={form.control}
                 name="qualityControl.observations"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Observações</FormLabel>
+                  <FormItem className="md:col-span-2">
+                    <FormLabel>Observações do Controle de Qualidade</FormLabel>
                     <FormControl>
-                      <Textarea {...field} />
+                      <Textarea
+                        placeholder="Adicione qualquer informação adicional..."
+                        {...field}
+                        value={field.value || ''}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Status da Expedição</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Status da Expedição</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="pendente">Pendente</SelectItem>
+                        <SelectItem value="em_analise">Em Análise</SelectItem>
+                        <SelectItem value="aprovado">Aprovado</SelectItem>
+                        <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                        <SelectItem value="retido">Retido</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="observations"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-2">
+                    <FormLabel>Observações do Status</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Adicione qualquer informação adicional sobre o status da expedição..."
+                        {...field}
+                        value={field.value || ''}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Data/Hora de Chegada do Caminhão</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FormField
+              control={form.control}
+              name="arrivalDateTime"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data/Hora de Chegada do Caminhão</FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o status da expedição" />
-                    </SelectTrigger>
+                    <Input
+                      type="datetime-local"
+                      {...field}
+                      value={field.value || ''}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value="pendente">Pendente</SelectItem>
-                    <SelectItem value="em_analise">Em Análise</SelectItem>
-                    <SelectItem value="aprovado">Aprovado</SelectItem>
-                    <SelectItem value="rejeitado">Rejeitado</SelectItem>
-                    <SelectItem value="retido">Retido</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </CardContent>
-      </Card>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Data/Hora de Chegada do Caminhão</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <FormField
-            control={form.control}
-            name="arrivalDateTime"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data/Hora de Chegada do Caminhão</FormLabel>
-                <FormControl>
-                  <Input
-                    type="datetime-local"
-                    {...field}
-                    value={field.value || ''}
-                    onChange={(e) => field.onChange(e.target.value)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </CardContent>
-      </Card>
-
-      <div className="flex justify-end space-x-4">
-        <Button type="button" variant="outline" onClick={() => navigate('/?tab=list')}>
-          Voltar para a Lista
-        </Button>
-        <Button type="submit">
-          {initialData ? 'Atualizar Expedição' : 'Criar Expedição'}
-        </Button>
-      </div>
+        <div className="flex justify-end space-x-4">
+          <Button type="button" variant="outline" onClick={() => navigate('/?tab=list')}>
+            Voltar para a Lista
+          </Button>
+          <Button type="submit">
+            {initialData ? 'Atualizar Expedição' : 'Criar Expedição'}
+          </Button>
+        </div>
       </form>
 
       <NewTruckDialog

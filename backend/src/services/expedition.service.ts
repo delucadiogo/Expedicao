@@ -1,6 +1,7 @@
 import pool from '../config/database';
 import { CreateExpeditionDTO, UpdateExpeditionDTO, Expedition, ExpeditionStats } from '../types/expedition';
 import { v4 as uuidv4 } from 'uuid';
+import { PoolClient } from 'pg';
 
 export class ExpeditionService {
   // Obter todas as expedições com filtros
@@ -60,7 +61,8 @@ export class ExpeditionService {
         e.created_at AS "createdAt",
         e.updated_at AS "updatedAt",
         e.created_by AS "createdBy",
-        e.updated_by AS "updatedBy"
+        e.updated_by AS "updatedBy",
+        e.observations AS observations
       FROM expeditions e
       LEFT JOIN products p ON p.expedition_id = e.id
       LEFT JOIN quality_control qc ON qc.expedition_id = e.id
@@ -186,7 +188,9 @@ export class ExpeditionService {
         e.created_at AS "createdAt",
         e.updated_at AS "updatedAt",
         e.created_by AS "createdBy",
-        e.updated_by AS "updatedBy"
+        e.updated_by AS "updatedBy",
+        e.arrival_datetime AS "arrivalDateTime",
+        e.observations AS observations
       FROM expeditions e
       LEFT JOIN products p ON p.expedition_id = e.id
       LEFT JOIN quality_control qc ON qc.expedition_id = e.id
@@ -196,11 +200,13 @@ export class ExpeditionService {
     `;
 
     const result = await pool.query(query, [id]);
+    console.log('Resultado da query getById (backend - FINAL):', result.rows[0]); // Log para depuração
     return result.rows[0] || null;
   }
 
   // Criar nova expedição
   async create(data: CreateExpeditionDTO): Promise<Expedition> {
+    console.log('ExpeditionService.create received data:', data); // Log para depuração
     const client = await pool.connect();
     
     try {
@@ -215,8 +221,8 @@ export class ExpeditionService {
           id, expedition_number, date_time, status,
           truck_plate, driver_name, driver_document, transport_company,
           expedition_responsible, responsible_position, supplier_name, supplier_document,
-          created_at, updated_at, created_by
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+          created_at, updated_at, created_by, observations
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
         RETURNING *
       `;
 
@@ -235,7 +241,8 @@ export class ExpeditionService {
         data.supplierDocument,
         now,
         now,
-        data.createdBy || 'system'
+        data.createdBy || 'system',
+        data.observations || null
       ];
 
       const expeditionResult = await client.query(expeditionQuery, expeditionValues);
@@ -326,10 +333,11 @@ export class ExpeditionService {
 
   // Atualizar expedição
   async update(id: string, data: UpdateExpeditionDTO): Promise<Expedition | null> {
-    console.log('Received data in backend ExpeditionService.update:', data);
+    console.log('ExpeditionService.update received data:', data); // Log para depuração
     const client = await pool.connect();
     
     try {
+      console.log('BEGINNING TRANSACTION'); // Novo log
       await client.query('BEGIN');
 
       const now = new Date().toISOString();
@@ -339,9 +347,19 @@ export class ExpeditionService {
       const updateValues = [];
       let paramCount = 1;
 
+      // Tratar campos específicos primeiro
+      if ('observations' in data) {
+        console.log('Observations value:', data.observations); // Log para debug
+        updateFields.push(`observations = $${paramCount}`);
+        updateValues.push(data.observations || null);
+        paramCount++;
+      }
+
+      // Tratar os demais campos
       for (const [key, value] of Object.entries(data)) {
-        if (key !== 'products' && key !== 'qualityControl' && key !== 'rejection') {
-          updateFields.push(`${this.toSnakeCase(key)} = $${paramCount}`);
+        if (key !== 'products' && key !== 'qualityControl' && key !== 'rejection' && key !== 'observations') {
+          const snakeKey = this.toSnakeCase(key);
+          updateFields.push(`${snakeKey} = $${paramCount}`);
           updateValues.push(value);
           paramCount++;
         }
@@ -360,11 +378,14 @@ export class ExpeditionService {
         `;
 
         updateValues.push(id);
-        console.log('Executing main expedition update query with values:', updateValues);
-        const result = await client.query(updateQuery, updateValues);
-        console.log('Result from main expedition update:', result.rowCount);
+        console.log('Update fields:', updateFields); // Log para debug
+        console.log('Update values:', updateValues); // Log para debug
+        console.log('Final update query:', updateQuery); // Log para debug
 
-        if ((result.rowCount ?? 0) === 0) {
+        const result = await client.query(updateQuery, updateValues);
+        console.log('Result from main expedition update:', result.rows[0]); // Log para debug
+
+        if ((result.rowCount || 0) === 0) {
           await client.query('ROLLBACK');
           return null;
         }
@@ -405,113 +426,20 @@ export class ExpeditionService {
 
       // Atualizar controle de qualidade se fornecido
       if (data.qualityControl) {
-        const updateQualityControlQuery = `
-          UPDATE quality_control
-          SET 
-            responsible_name = $1,
-            analysis_date_time = $2,
-            approval_status = $3,
-            justification = $4,
-            digital_signature = $5,
-            observations = $6
-          WHERE expedition_id = $7
-        `;
-
-        const qualityControlValues = [
-          data.qualityControl.responsibleName,
-          data.qualityControl.analysisDateTime,
-          data.qualityControl.approvalStatus,
-          data.qualityControl.justification,
-          data.qualityControl.digitalSignature,
-          data.qualityControl.observations,
-          id
-        ];
-
-        const result = await client.query(updateQualityControlQuery, qualityControlValues);
-
-        if ((result.rowCount ?? 0) === 0) {
-          const insertQualityControlQuery = `
-            INSERT INTO quality_control (
-              id, expedition_id, responsible_name, analysis_date_time,
-              approval_status, justification, digital_signature, observations
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-          `;
-
-          const insertQualityControlValues = [
-            uuidv4(),
-            id,
-            data.qualityControl.responsibleName,
-            data.qualityControl.analysisDateTime,
-            data.qualityControl.approvalStatus,
-            data.qualityControl.justification,
-            data.qualityControl.digitalSignature,
-            data.qualityControl.observations
-          ];
-
-          await client.query(insertQualityControlQuery, insertQualityControlValues);
-        }
+        await this.updateQualityControl(id, data.qualityControl, client);
       }
 
-      // Atualizar rejeição se fornecida
+      // Atualizar rejeição se fornecido
       if (data.rejection) {
-        const updateRejectionQuery = `
-          UPDATE rejections
-          SET
-            reason = $1,
-            sent_to_supplies = $2,
-            supplies_date_time = $3,
-            supplies_responsible = $4,
-            cargo_retained = $5,
-            retained_quantity = $6,
-            retention_location = $7,
-            corrective_actions = $8
-          WHERE expedition_id = $9
-        `;
-
-        const rejectionValues = [
-          data.rejection.reason,
-          data.rejection.sentToSupplies,
-          data.rejection.suppliesDateTime,
-          data.rejection.suppliesResponsible,
-          data.rejection.cargoRetained,
-          Number(data.rejection.retainedQuantity),
-          data.rejection.retentionLocation,
-          data.rejection.correctiveActions,
-          id
-        ];
-
-        const result = await client.query(updateRejectionQuery, rejectionValues);
-
-        if ((result.rowCount ?? 0) === 0) {
-          const insertRejectionQuery = `
-            INSERT INTO rejections (
-              id, expedition_id, reason, sent_to_supplies,
-              supplies_date_time, supplies_responsible, cargo_retained,
-              retained_quantity, retention_location, corrective_actions
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-          `;
-
-          const insertRejectionValues = [
-            uuidv4(),
-            id,
-            data.rejection.reason,
-            data.rejection.sentToSupplies,
-            data.rejection.suppliesDateTime,
-            data.rejection.suppliesResponsible,
-            data.rejection.cargoRetained,
-            Number(data.rejection.retainedQuantity),
-            data.rejection.retentionLocation,
-            data.rejection.correctiveActions
-          ];
-
-          await client.query(insertRejectionQuery, insertRejectionValues);
-        }
+        await this.updateRejection(id, data.rejection, client);
       }
 
       await client.query('COMMIT');
+      console.log('COMMITTING TRANSACTION'); // Novo log
       return this.getById(id);
     } catch (error) {
       console.error('Erro ao atualizar expedição no service:', error);
+      console.log('ROLLING BACK TRANSACTION - Error:', error); // Novo log
       await client.query('ROLLBACK');
       throw error;
     } finally {
@@ -535,7 +463,7 @@ export class ExpeditionService {
       const result = await client.query('DELETE FROM expeditions WHERE id = $1 RETURNING id', [id]);
       
       await client.query('COMMIT');
-      return result.rowCount > 0;
+      return (result.rowCount || 0) > 0;
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
@@ -545,12 +473,10 @@ export class ExpeditionService {
   }
 
   // Atualizar controle de qualidade
-  async updateQualityControl(id: string, qualityControlData: any): Promise<Expedition | null> {
-    const client = await pool.connect();
+  async updateQualityControl(id: string, qualityControlData: any, client: PoolClient): Promise<Expedition | null> {
+    console.log('ExpeditionService.updateQualityControl received qualityControlData:', qualityControlData); // Log para depuração
     
     try {
-      await client.query('BEGIN');
-
       const qualityControlQuery = `
         UPDATE quality_control
         SET 
@@ -594,23 +520,20 @@ export class ExpeditionService {
         id
       ]);
 
-      await client.query('COMMIT');
-      return this.getById(id);
+      // Não faremos o getById aqui, pois a transação ainda está em andamento
+      return null; // ou um objeto de status simples se necessário
     } catch (error) {
-      await client.query('ROLLBACK');
+      console.error('Erro ao atualizar controle de qualidade no service:', error);
+      // Não faremos rollback aqui, será tratado pela função chamadora
       throw error;
-    } finally {
-      client.release();
-    }
+    } 
   }
 
   // Atualizar rejeição
-  async updateRejection(id: string, rejectionData: any): Promise<Expedition | null> {
-    const client = await pool.connect();
+  async updateRejection(id: string, rejectionData: any, client: PoolClient): Promise<Expedition | null> {
+    console.log('ExpeditionService.updateRejection received rejectionData:', rejectionData); // Log para depuração
     
     try {
-      await client.query('BEGIN');
-
       const rejectionQuery = `
         UPDATE rejections
         SET 
@@ -652,14 +575,13 @@ export class ExpeditionService {
         await client.query(statusUpdateQuery, [new Date().toISOString(), id]);
       }
 
-      await client.query('COMMIT');
-      return this.getById(id);
+      // Não faremos o getById aqui, pois a transação ainda está em andamento
+      return null; // ou um objeto de status simples se necessário
     } catch (error) {
-      await client.query('ROLLBACK');
+      console.error('Erro ao atualizar rejeição no service:', error);
+      // Não faremos rollback aqui, será tratado pela função chamadora
       throw error;
-    } finally {
-      client.release();
-    }
+    } 
   }
 
   private toSnakeCase(str: string): string {
