@@ -95,11 +95,11 @@ export class ExpeditionService {
     }
     if (filters?.startDate) {
       conditions.push(`e.date_time >= $${paramIndex++}`);
-      values.push(`${filters.startDate}T00:00:00.000Z`); // Início do dia em UTC
+      values.push(`${filters.startDate} 00:00:00`); // Ajuste para timestamp without time zone
     }
     if (filters?.endDate) {
       conditions.push(`e.date_time <= $${paramIndex++}`);
-      values.push(`${filters.endDate}T23:59:59.999Z`); // Fim do dia em UTC
+      values.push(`${filters.endDate} 23:59:59`); // Ajuste para timestamp without time zone
     }
 
     if (conditions.length > 0) {
@@ -117,20 +117,40 @@ export class ExpeditionService {
   }
 
   // Obter estatísticas das expedições
-  async getStats(): Promise<ExpeditionStats> {
+  async getStats(filters?: { startDate?: string; endDate?: string; }): Promise<ExpeditionStats> {
     try {
-      const query = `
+      let query = `
         SELECT 
           CAST(COUNT(*) AS INTEGER) as total,
           CAST(COUNT(CASE WHEN status = 'pendente' THEN 1 END) AS INTEGER) as pending,
-          CAST(COUNT(CASE WHEN status = 'em_analise' THEN 1 END) AS INTEGER) as in_analysis,
+          CAST(COUNT(CASE WHEN status = 'em_analise' THEN 1 END) AS INTEGER) as "inAnalysis",
           CAST(COUNT(CASE WHEN status = 'aprovado' THEN 1 END) AS INTEGER) as approved,
           CAST(COUNT(CASE WHEN status = 'rejeitado' THEN 1 END) AS INTEGER) as rejected,
           CAST(COUNT(CASE WHEN status = 'retido' THEN 1 END) AS INTEGER) as retained
-        FROM expeditions
+        FROM expeditions e
       `;
 
-      const result = await pool.query(query);
+      const conditions: string[] = [];
+      const values: any[] = [];
+      let paramIndex = 1;
+
+      if (filters?.startDate) {
+        conditions.push(`e.date_time >= $${paramIndex++}`);
+        values.push(`${filters.startDate} 00:00:00`); // Ajuste para timestamp without time zone
+      }
+      if (filters?.endDate) {
+        conditions.push(`e.date_time <= $${paramIndex++}`);
+        values.push(`${filters.endDate} 23:59:59`); // Ajuste para timestamp without time zone
+      }
+
+      if (conditions.length > 0) {
+        query += ` WHERE ${conditions.join(' AND ')}`;
+      }
+
+      console.log('Query final para getStats (backend):', query);
+      console.log('Valores da query para getStats (backend):', values);
+
+      const result = await pool.query(query, values);
       console.log('Resultado do getStats do backend:', result.rows[0]);
       return result.rows[0];
     } catch (error) {

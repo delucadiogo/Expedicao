@@ -46,16 +46,16 @@ export function useExpedition() {
   }, [toast]);
 
   // Carregar estatísticas
-  const loadStats = useCallback(async () => {
+  const loadStats = useCallback(async (filters?: any) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await expeditionService.getStats();
+      const data = await expeditionService.getStats(filters);
       console.log('Dados de estatísticas recebidos do serviço:', data);
       setStats({
         total: data.total,
         pending: data.pending,
-        inAnalysis: data.in_analysis,
+        inAnalysis: data.inAnalysis,
         approved: data.approved,
         rejected: data.rejected,
         retained: data.retained,
@@ -222,7 +222,7 @@ export function useExpedition() {
 
   const refetchAllExpeditionData = useCallback(() => {
     loadExpeditions();
-    loadStats();
+    loadStats({});
   }, [loadExpeditions, loadStats]);
 
   return {

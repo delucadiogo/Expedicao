@@ -64,11 +64,6 @@ export interface ExpeditionStats {
   approved: number;
   rejected: number;
   retained: number;
-  status: ExpeditionStatus;
-  dateTime: string;
-  arrivalDateTime?: string;
-  createdBy?: string;
-  observations?: string;
 }
 
 // DTOs para as requisições

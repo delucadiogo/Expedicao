@@ -12,6 +12,7 @@ export class ExpeditionController {
   // Obter todas as expedições
   getAll = async (req: Request, res: Response) => {
     try {
+      console.log('Filtros recebidos em getAll no controller:', req.query);
       const filters = req.query;
       const expeditions = await this.expeditionService.getAll(filters);
       res.json(expeditions);
@@ -24,7 +25,8 @@ export class ExpeditionController {
   // Obter estatísticas das expedições
   getStats = async (req: Request, res: Response) => {
     try {
-      const stats = await this.expeditionService.getStats();
+      console.log('Filtros recebidos em getStats no controller:', req.query);
+      const stats = await this.expeditionService.getStats(req.query);
       res.json(stats);
     } catch (error) {
       console.error('Erro ao buscar estatísticas no controller:', error);

@@ -11,9 +11,37 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { ExpeditionStatus } from '@/types/expedition';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { List } from 'lucide-react';
 
 export default function Dashboard() {
-  const { stats } = useExpeditionContext();
+  const { stats, loadStats } = useExpeditionContext();
+
+  const [filterStartDate, setFilterStartDate] = React.useState<Date | undefined>(undefined);
+  const [filterEndDate, setFilterEndDate] = React.useState<Date | undefined>(undefined);
+
+  React.useEffect(() => {
+    handleSearch();
+  }, [loadStats]);
+
+  const handleSearch = () => {
+    const filters = {
+      startDate: filterStartDate ? format(filterStartDate, 'yyyy-MM-dd') : undefined,
+      endDate: filterEndDate ? format(filterEndDate, 'yyyy-MM-dd') : undefined,
+    };
+    loadStats(filters);
+  };
+
+  const handleClearFilters = () => {
+    setFilterStartDate(undefined);
+    setFilterEndDate(undefined);
+    loadStats({}); // Recarrega as estatísticas sem filtros
+  };
 
   const chartData = [
     { name: 'Pendentes', value: stats.pending },
@@ -83,6 +111,67 @@ export default function Dashboard() {
             <div className="text-2xl font-bold">{stats.retained}</div>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="mb-6 p-4 border rounded-md grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="flex flex-col">
+          <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">Data Inicial</label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !filterStartDate && "text-muted-foreground"
+                )}
+              >
+                {filterStartDate ? format(filterStartDate, "PPP", { locale: ptBR }) : <span>Selecione uma data</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={filterStartDate}
+                onSelect={setFilterStartDate}
+                initialFocus
+                locale={ptBR}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">Data Final</label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !filterEndDate && "text-muted-foreground"
+                )}
+              >
+                {filterEndDate ? format(filterEndDate, "PPP", { locale: ptBR }) : <span>Selecione uma data</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={filterEndDate}
+                onSelect={setFilterEndDate}
+                initialFocus
+                locale={ptBR}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div className="col-span-1 md:col-span-2 lg:col-span-1 flex justify-end space-x-2 mt-auto">
+          <Button onClick={handleSearch}>
+            <List className="h-4 w-4 mr-2" /> Buscar
+          </Button>
+          <Button variant="outline" onClick={handleClearFilters}>
+            Limpar Filtros
+          </Button>
+        </div>
       </div>
 
       <Card>

@@ -53,7 +53,19 @@ export const expeditionService = {
   },
 
   // Obter estatísticas
-  getStats: () => fetchAPI<ExpeditionStats>('/expeditions/stats'),
+  getStats: (filters?: any) => {
+    let queryString = '';
+    if (filters) {
+      const params = new URLSearchParams();
+      for (const key in filters) {
+        if (filters[key] !== undefined && filters[key] !== null) {
+          params.append(key, filters[key]);
+        }
+      }
+      queryString = params.toString();
+    }
+    return fetchAPI<ExpeditionStats>(`/expeditions/stats${queryString ? `?${queryString}` : ''}`);
+  },
 
   // Obter expedição por ID
   getById: (id: string) => fetchAPI<Expedition>(`/expeditions/${id}`),
