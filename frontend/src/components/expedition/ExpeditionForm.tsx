@@ -37,6 +37,30 @@ import { ProductCatalog } from '@/types/productCatalog';
 import { productCatalogService } from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
 
+// Helper function to format an ISO string date to 'YYYY-MM-DD' for input type="date"
+const formatDateForInput = (dateString?: string): string => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Helper function to format an ISO string date for display (e.g., in tables)
+const formatDateForDisplay = (dateString?: string): string => {
+  if (!dateString) return '';
+  // Criar a data usando o construtor que aceita UTC, ou tratar como local
+  // Se a string já é YYYY-MM-DD, tratá-la como local
+  if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    // Se for YYYY-MM-DD, adicionar T00:00:00 para garantir que seja interpretado no fuso horário local
+    return new Date(dateString + 'T00:00:00').toLocaleDateString();
+  } else {
+    // Se for ISO string completa, usar diretamente
+    return new Date(dateString).toLocaleDateString();
+  }
+};
+
 const formSchema = z.object({
   expeditionNumber: z.string().min(1, 'Número da expedição é obrigatório'),
   truckPlate: z.string().min(1, 'Placa é obrigatória'),
@@ -56,6 +80,7 @@ const formSchema = z.object({
     observations: z.string().optional(),
   }),
   status: z.enum(['pendente', 'em_analise', 'aprovado', 'rejeitado', 'retido']),
+  dateTime: z.string().optional(),
 });
 
 interface ExpeditionFormProps {
@@ -201,6 +226,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
         observations: initialData?.qualityControl?.observations || '',
       },
       status: initialData?.status || 'pendente',
+      dateTime: initialData?.dateTime ? formatDateForInput(initialData.dateTime) : formatDateForInput(new Date().toISOString()),
     },
   });
 
@@ -231,6 +257,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
           observations: initialData.qualityControl.observations || '',
         },
         status: initialData.status || 'pendente',
+        dateTime: initialData.dateTime ? formatDateForInput(initialData.dateTime) : formatDateForInput(new Date().toISOString()),
       });
       setProducts(initialData.products || []);
     }

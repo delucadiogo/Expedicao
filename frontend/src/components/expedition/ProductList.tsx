@@ -72,7 +72,7 @@ export default function ProductList({ products, onEdit, onDelete }: ProductListP
                       <td className="py-2">{product.batch || '-'}</td>
                       <td className="py-2">
                         {product.expiryDate
-                          ? new Date(product.expiryDate).toLocaleDateString()
+                          ? new Date(product.expiryDate + 'T00:00:00').toLocaleDateString()
                           : '-'}
                       </td>
                       <td className="py-2">

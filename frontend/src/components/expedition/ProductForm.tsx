@@ -14,6 +14,17 @@ import { ProductCatalog } from '@/types/productCatalog';
 import NewProductDialog from '@/components/product/NewProductDialog';
 import { Plus } from 'lucide-react';
 
+// Helper function to format an ISO string date to 'YYYY-MM-DD' for input type="date"
+const formatIsoToDateInput = (isoString?: string): string => {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  // Get UTC date components to avoid local timezone offset issues when formatting for input type="date"
+  const year = date.getUTCFullYear();
+  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+  const day = date.getUTCDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const formSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, 'Nome é obrigatório'),
@@ -45,7 +56,7 @@ export default function ProductForm({ product, onSubmit, onCancel }: ProductForm
       quantity: product?.quantity?.toString() || '',
       unit: product?.unit || '',
       batch: product?.batch || '',
-      expiryDate: product?.expiryDate || '',
+      expiryDate: product?.expiryDate ? formatIsoToDateInput(product.expiryDate) : '',
       status: product?.status || 'a_verificar',
       observations: product?.observations || '',
     },
@@ -77,7 +88,7 @@ export default function ProductForm({ product, onSubmit, onCancel }: ProductForm
           quantity: product.quantity?.toString() || '',
           unit: catalogProduct.unit,
           batch: product.batch || '',
-          expiryDate: product.expiryDate || '',
+          expiryDate: product.expiryDate ? formatIsoToDateInput(product.expiryDate) : '',
           status: product.status || 'a_verificar',
           observations: product.observations || '',
         });
@@ -248,7 +259,14 @@ export default function ProductForm({ product, onSubmit, onCancel }: ProductForm
               <FormItem>
                 <FormLabel>Data de Validade</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <Input
+                    type="date"
+                    {...field}
+                    value={field.value || ''}
+                    onChange={(e) => {
+                      field.onChange(e.target.value);
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
