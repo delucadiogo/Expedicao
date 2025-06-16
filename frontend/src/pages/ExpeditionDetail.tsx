@@ -127,7 +127,12 @@ export default function ExpeditionDetail() {
         </div>
 
         <div className="print:p-0 print:space-y-1">
-          <div className="text-center print:py-2">
+          <div className="text-center print:py-2 mb-6 print:mb-2">
+            <img 
+              src="https://www.oliveira.com.br/wp-content/uploads/2023/09/logo_oliveira_ver_01.png" 
+              alt="Logo Oliveira" 
+              className="mx-auto h-16 print:h-12 mb-4 print:mb-2"
+            />
             <h1 className="text-2xl font-bold print:text-base print:mb-0.5">Relatório de Expedição</h1>
             <p className="text-gray-500 print:text-xs print:leading-tight">Número: {expedition.expeditionNumber}</p>
             <p className="text-gray-500 print:text-xs print:leading-tight">
@@ -329,7 +334,15 @@ export default function ExpeditionDetail() {
           .print\\:mb-0 { margin-bottom: 0 !important; }
           .print\\:mt-0 { margin-top: 0 !important; }
           .print\\:pt-0 { padding-top: 0 !important; }
-          .print\\:leading-tight { line-height: 1.2 !important; } /* Ajuste o line-height */
+          .print\\:leading-tight { line-height: 1.2 !important; }
+
+          /* Ajustes específicos para a logo na impressão */
+          img[alt="Logo Oliveira"] {
+            max-height: 48px !important; /* 12 * 4px = 48px */
+            width: auto !important;
+            margin: 0 auto !important;
+            display: block !important;
+          }
 
           .fixed.inset-0 {
             position: static !important;
@@ -348,26 +361,26 @@ export default function ExpeditionDetail() {
             width: 100% !important;
             max-width: none !important;
             height: auto !important;
-            padding: 0; /* Ajustar conforme necessário para o conteúdo dentro da estrutura do Card */
+            padding: 0;
           }
 
           /* General A4 adjustments */
           @page {
             size: A4;
-            margin: 1cm; /* Margens A4 reintroduzidas */
+            margin: 1cm;
           }
 
           h1, h2, h3, h4, h5, h6 { page-break-after: avoid; margin: 0; padding: 0; }
           p { page-break-inside: avoid; margin: 0; padding: 0; orphans: 3; widows: 3;}
           table { page-break-inside: auto; }
-          tr { page-break-inside: avoid; /* page-break-after: auto; */ }
+          tr { page-break-inside: avoid; }
           thead { display: table-header-group; }
           tfoot { display: table-footer-group; }
 
           /* Specific adjustments for cards/sections */
           .Card {
-            page-break-inside: avoid; /* Reaplicado */
-            margin-bottom: 0.5rem; /* Espaço entre cards reintroduzido */
+            page-break-inside: avoid;
+            margin-bottom: 0.5rem;
             flex-shrink: 0 !important;
           }
 
