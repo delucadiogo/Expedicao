@@ -53,6 +53,7 @@ export interface Expedition {
   updatedAt: string;
   createdBy: string;
   updatedBy: string;
+  arrivalDateTime?: string;
 }
 
 export interface ExpeditionStats {
@@ -76,10 +77,11 @@ export interface CreateExpeditionDTO {
   expeditionResponsible: string;
   responsiblePosition?: string;
   products: Product[];
-  status: ExpeditionStatus;
   qualityControl: QualityControl;
   rejection?: Rejection;
+  status: ExpeditionStatus;
   dateTime: string;
+  arrivalDateTime?: string;
   createdBy?: string;
 }
 

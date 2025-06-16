@@ -3,6 +3,7 @@ CREATE TABLE expeditions (
   id UUID PRIMARY KEY,
   expedition_number VARCHAR(50) NOT NULL UNIQUE,
   date_time TIMESTAMP NOT NULL,
+  arrival_datetime TIMESTAMP,
   status VARCHAR(20) NOT NULL CHECK (status IN ('pendente', 'em_analise', 'aprovado', 'rejeitado', 'retido')),
   
   -- Informações de Transporte
@@ -23,6 +24,9 @@ CREATE TABLE expeditions (
   created_by VARCHAR(100) NOT NULL,
   updated_by VARCHAR(100)
 );
+
+-- Comentário explicativo para o campo arrival_datetime
+COMMENT ON COLUMN expeditions.arrival_datetime IS 'Data e hora em que o caminhão chegou para a expedição';
 
 -- Criação da tabela de produtos (para expedições)
 CREATE TABLE products (

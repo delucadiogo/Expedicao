@@ -36,6 +36,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ProductCatalog } from '@/types/productCatalog';
 import { productCatalogService } from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
+import { toast } from '@/components/ui/use-toast';
 
 // Helper function to format an ISO string date to 'YYYY-MM-DD' for input type="date"
 const formatDateForInput = (dateString?: string): string => {
@@ -61,6 +62,18 @@ const formatDateForDisplay = (dateString?: string): string => {
   }
 };
 
+// Função auxiliar para formatar ISO string para entrada de data e hora (YYYY-MM-DDTHH:MM)
+const formatDateTimeForForm = (isoString?: string): string => {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
 const formSchema = z.object({
   expeditionNumber: z.string().min(1, 'Número da expedição é obrigatório'),
   truckPlate: z.string().min(1, 'Placa é obrigatória'),
@@ -81,6 +94,7 @@ const formSchema = z.object({
   }),
   status: z.enum(['pendente', 'em_analise', 'aprovado', 'rejeitado', 'retido']),
   dateTime: z.string().optional(),
+  arrivalDateTime: z.string().optional(),
 });
 
 interface ExpeditionFormProps {
@@ -227,6 +241,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
       },
       status: initialData?.status || 'pendente',
       dateTime: initialData?.dateTime ? formatDateForInput(initialData.dateTime) : formatDateForInput(new Date().toISOString()),
+      arrivalDateTime: initialData?.arrivalDateTime ? formatDateTimeForForm(initialData.arrivalDateTime) : '',
     },
   });
 
@@ -258,12 +273,16 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
         },
         status: initialData.status || 'pendente',
         dateTime: initialData.dateTime ? formatDateForInput(initialData.dateTime) : formatDateForInput(new Date().toISOString()),
+        arrivalDateTime: initialData.arrivalDateTime ? formatDateTimeForForm(initialData.arrivalDateTime) : '',
       });
       setProducts(initialData.products || []);
     }
   }, [initialData, form, drivers, transportCompanies, suppliers, expeditionResponsibles, qualityResponsibles]);
 
   const onSubmitForm = async (values: z.infer<typeof formSchema>) => {
+    // Converte a data e hora de chegada para ISO string para o backend
+    const arrivalDateTimeISO = values.arrivalDateTime ? new Date(values.arrivalDateTime).toISOString() : undefined;
+
     // Encontrar os nomes correspondentes aos IDs selecionados
     const selectedDriver = drivers.find(d => d.id === values.driverName);
     const selectedTransportCompany = transportCompanies.find(tc => tc.id === values.transportCompany);
@@ -282,6 +301,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
         responsibleName: selectedQualityResponsible?.name || '',
       },
       products: form.getValues('products'),
+      arrivalDateTime: arrivalDateTimeISO,
     };
 
     if (initialData) {
@@ -312,6 +332,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
           },
           rejection: undefined,
           dateTime: new Date().toISOString(),
+          arrivalDateTime: arrivalDateTimeISO,
           createdBy: undefined,
         };
 
@@ -325,8 +346,15 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
         if (onSuccess) {
           onSuccess();
         }
-      } catch (error) {
-        console.error('Erro ao criar expedição:', error);
+
+        toast({
+          title: "Sucesso",
+          description: "Expedição cadastrada com sucesso!",
+        });
+        // Redireciona para a lista de expedições após o sucesso
+        navigate('/?tab=list');
+      } catch (error: any) {
+        console.error("Erro ao criar expedição:", error);
       }
     }
   };
@@ -845,6 +873,32 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
                     <SelectItem value="retido">Retido</SelectItem>
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Data/Hora de Chegada do Caminhão</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <FormField
+            control={form.control}
+            name="arrivalDateTime"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Data/Hora de Chegada do Caminhão</FormLabel>
+                <FormControl>
+                  <Input
+                    type="datetime-local"
+                    {...field}
+                    value={field.value || ''}
+                    onChange={(e) => field.onChange(e.target.value)}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

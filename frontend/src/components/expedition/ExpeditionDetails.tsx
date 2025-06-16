@@ -22,7 +22,7 @@ export default function ExpeditionDetails({ expeditionId, onPrintRequest }: Expe
     return (
       <div className="flex flex-col items-center justify-center space-y-4">
         <p>Expedição não encontrada</p>
-        <Button onClick={() => navigate('/')}>
+        <Button onClick={() => navigate('/?tab=list')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
         </Button>
@@ -67,7 +67,7 @@ export default function ExpeditionDetails({ expeditionId, onPrintRequest }: Expe
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <Button onClick={() => navigate('/')}>
+        <Button onClick={() => navigate('/?tab=list')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
         </Button>
@@ -160,7 +160,7 @@ export default function ExpeditionDetails({ expeditionId, onPrintRequest }: Expe
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <p>Responsável: {expedition.qualityControl.responsible}</p>
+              <p>Responsável: {expedition.qualityControl.responsibleName}</p>
               <p>Status: {expedition.qualityControl.approvalStatus}</p>
             </div>
             {expedition.qualityControl.justification && (

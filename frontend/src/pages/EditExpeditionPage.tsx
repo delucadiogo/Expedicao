@@ -34,7 +34,7 @@ const EditExpeditionPage: React.FC = () => {
           description: "A expedição que você tentou editar não existe.",
           variant: "destructive",
         });
-        navigate('/expeditions'); // Redirecionar para a lista ou dashboard
+        navigate('/?tab=list'); // Redirecionar para a lista de expedições na aba correta
       }
       setIsLoadingExpedition(false);
     } else if (!id) {
@@ -43,7 +43,7 @@ const EditExpeditionPage: React.FC = () => {
         description: "ID da expedição não fornecido.",
         variant: "destructive",
       });
-      navigate('/expeditions');
+      navigate('/?tab=list'); // Redirecionar para a lista de expedições na aba correta
       setIsLoadingExpedition(false);
     }
   }, [id, expeditions, navigate, toast]);
