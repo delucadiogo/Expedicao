@@ -1,0 +1,92 @@
+# docker-compose.yml para orquestrar os serviços da aplicação Expedição
+
+# Define a versão da especificação do Docker Compose. A versão 3.8 é amplamente compatível.
+version: '3.8'
+
+# A seção 'services' define os diferentes contêineres que compõem sua aplicação.
+services:
+
+  # Serviço de Backend (API Node.js/TypeScript)
+  backend:
+    # Diz ao Docker Compose para construir a imagem deste serviço usando o Dockerfile
+    # localizado no diretório ./backend.
+    build: ./backend
+    # Define um nome específico para o contêiner, facilitando sua identificação.
+    container_name: expedicao_backend
+    # Mapeia a porta 3001 do host para a porta 3001 do contêiner.
+    # Isso permite que a aplicação seja acessível de fora do ambiente Docker na porta do host.
+    ports:
+      - "3001:3001"
+    # Variáveis de ambiente para o contêiner do backend.
+    # ATENÇÃO: Para produção, é ALTAMENTE RECOMENDADO usar o gerenciamento de variáveis de ambiente do Portainer
+    # ou um arquivo .env na VPS, e NÃO INCLUIR SENHAS DIRETAMENTE AQUI no GitHub.
+    environment:
+      # A URL de conexão com o banco de dados PostgreSQL.
+      # 'db' é o nome do serviço do banco de dados definido neste mesmo arquivo docker-compose.yml.
+      DATABASE_URL: postgres://user:password@db:5432/expedicao_db # Altere 'user' e 'password' e 'expedicao_db' para seus valores reais
+      # A porta em que o backend irá escutar dentro do contêiner.
+      PORT: 3001
+      # Outras variáveis de ambiente que seu backend possa precisar (ex: chaves JWT, domínios permitidos).
+      JWT_SECRET: sua_chave_secreta_aqui # MUDE ISTO EM PRODUÇÃO!
+      ALLOWED_EMAIL_DOMAINS: seu_dominio.com,outro_dominio.com # Adapte para os domínios permitidos
+    # Garante que o serviço do banco de dados ('db') inicie antes do backend.
+    depends_on:
+      - db
+    # Volumes (opcional): Use para persistir node_modules durante o desenvolvimento ou para outros fins.
+    # Em produção, o 'node_modules' já estará na imagem Docker devido ao Dockerfile de múltiplos estágios.
+    # volumes:
+    #   - backend_node_modules:/app/node_modules # Descomente se precisar persistir node_modules (mais para desenvolvimento)
+    # Reinicia o contêiner automaticamente se ele parar, a menos que seja explicitamente parado.
+    restart: unless-stopped
+
+  # Serviço de Frontend (Aplicação React com Nginx)
+  frontend:
+    # Diz ao Docker Compose para construir a imagem deste serviço usando o Dockerfile
+    # localizado no diretório ./frontend.
+    build: ./frontend
+    # Define um nome específico para o contêiner.
+    container_name: expedicao_frontend
+    # Mapeia a porta 80 do host (porta padrão HTTP) para a porta 80 do contêiner (Nginx).
+    # Se você for usar HTTPS (recomendado), a porta 443 do host será mapeada para um reverse proxy (ex: Nginx externo ou Traefik).
+    ports:
+      - "80:80"
+    # O frontend pode depender do backend se fizer requisições diretas ao contêiner do backend
+    # (embora um reverse proxy no Nginx do frontend seja mais comum para a API).
+    depends_on:
+      - backend
+    # Reinicia o contêiner automaticamente se ele parar.
+    restart: unless-stopped
+    # Se o seu frontend precisa saber a URL da API, você pode passar uma variável de ambiente.
+    # Lembre-se que se você estiver usando o Nginx do frontend como proxy reverso para a API,
+    # o frontend pode chamar /api/endpoint e o Nginx se encarrega do roteamento interno.
+    # environment:
+    #   REACT_APP_API_URL: http://localhost:3001 # Ou use o nome do serviço 'backend' se o frontend fizer requisições diretas ao contêiner
+
+  # Serviço de Banco de Dados (PostgreSQL 17)
+  db:
+    # Usa a imagem oficial do PostgreSQL na versão 17 (com a tag -alpine para uma imagem menor).
+    image: postgres:17-alpine
+    # Define um nome específico para o contêiner.
+    container_name: expedicao_db
+    # Variáveis de ambiente para configurar o PostgreSQL.
+    environment:
+      POSTGRES_DB: expedicao_db # Nome do banco de dados
+      POSTGRES_USER: user       # Nome do usuário do banco de dados
+      POSTGRES_PASSWORD: password # Senha do usuário. MUDE PARA UMA SENHA FORTE EM PRODUÇÃO!
+    # Define um volume persistente para armazenar os dados do banco de dados.
+    # Isso é CRUCIAL para garantir que seus dados não sejam perdidos se o contêiner for removido ou recriado.
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    # Opcional: Mapeia a porta 5432 do host para a porta 5432 do contêiner.
+    # Isso permite que você acesse o banco de dados diretamente da sua máquina host (ex: com um cliente SQL).
+    # Cuidado com a segurança se você expor esta porta diretamente para a internet em produção.
+    # ports:
+    #   - "5432:5432"
+    # Reinicia o contêiner automaticamente se ele parar.
+    restart: unless-stopped
+
+# A seção 'volumes' define os volumes nomeados que serão usados pelos serviços.
+# Os volumes garantem a persistência dos dados e podem ser gerenciados independentemente dos contêineres.
+volumes:
+  db_data: # Volume para persistir os dados do PostgreSQL
+  # backend_node_modules: # Volume opcional para node_modules do backend (descomente se estiver usando no serviço backend) 
