@@ -16,10 +16,10 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 interface ExpeditionListProps {
-  onPrintRequest: (expedition: Expedition) => void;
+  // onPrintRequest: (expedition: Expedition) => void;
 }
 
-export default function ExpeditionList({ onPrintRequest }: ExpeditionListProps) {
+export default function ExpeditionList({ /* onPrintRequest */ }: ExpeditionListProps) {
   const { expeditions, deleteExpedition, loadExpeditions, loading } = useExpeditionContext();
   const [expeditionToDelete, setExpeditionToDelete] = useState<Expedition | null>(null);
   const navigate = useNavigate();
@@ -268,13 +268,6 @@ export default function ExpeditionList({ onPrintRequest }: ExpeditionListProps) 
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => onPrintRequest(expedition)}
-                        >
-                          <Printer className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
                           onClick={() => navigate(`/expeditions/${expedition.id}`)}
                         >
                           <Eye className="h-4 w-4" />
@@ -282,12 +275,12 @@ export default function ExpeditionList({ onPrintRequest }: ExpeditionListProps) 
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => navigate(`/expeditions/edit/${expedition.id}`)}
+                          onClick={() => navigate(`/edit-expedition/${expedition.id}`)}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <Button
-                          variant="outline"
+                          variant="destructive"
                           size="sm"
                           onClick={() => setExpeditionToDelete(expedition)}
                         >

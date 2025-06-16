@@ -44,7 +44,7 @@ const App = () => {
                     <ExpeditionDetail />
                   </ProtectedRoute>
                 } />
-                <Route path="/expeditions/edit/:id" element={
+                <Route path="/edit-expedition/:id" element={
                   <ProtectedRoute>
                     <EditExpeditionPage />
                   </ProtectedRoute>
