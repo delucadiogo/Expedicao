@@ -3,9 +3,17 @@ import { CreateExpeditionDTO, UpdateExpeditionDTO, Expedition, ExpeditionStats }
 import { v4 as uuidv4 } from 'uuid';
 
 export class ExpeditionService {
-  // Obter todas as expedições
-  async getAll(): Promise<Expedition[]> {
-    const query = `
+  // Obter todas as expedições com filtros
+  async getAll(filters?: { 
+    expeditionNumber?: string;
+    truckPlate?: string;
+    driverName?: string;
+    supplierName?: string;
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<Expedition[]> {
+    let query = `
       SELECT
         e.id,
         e.expedition_number AS "expeditionNumber",
@@ -22,8 +30,7 @@ export class ExpeditionService {
         json_agg(
             json_build_object(
                 'id', p.id,
-                'name', p.name,
-                'code', p.code,
+                'name', p.name,'code', p.code,
                 'quantity', p.quantity,
                 'unit', p.unit,
                 'batch', p.batch,
@@ -58,11 +65,51 @@ export class ExpeditionService {
       LEFT JOIN products p ON p.expedition_id = e.id
       LEFT JOIN quality_control qc ON qc.expedition_id = e.id
       LEFT JOIN rejections r ON r.expedition_id = e.id
+    `;
+
+    const conditions: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    if (filters?.expeditionNumber) {
+      conditions.push(`e.expedition_number ILIKE $${paramIndex++}`);
+      values.push(`%${filters.expeditionNumber}%`);
+    }
+    if (filters?.truckPlate) {
+      conditions.push(`e.truck_plate ILIKE $${paramIndex++}`);
+      values.push(`%${filters.truckPlate}%`);
+    }
+    if (filters?.driverName) {
+      conditions.push(`e.driver_name ILIKE $${paramIndex++}`);
+      values.push(`%${filters.driverName}%`);
+    }
+    if (filters?.supplierName) {
+      conditions.push(`e.supplier_name ILIKE $${paramIndex++}`);
+      values.push(`%${filters.supplierName}%`);
+    }
+    if (filters?.status) {
+      conditions.push(`e.status = $${paramIndex++}`);
+      values.push(filters.status);
+    }
+    if (filters?.startDate) {
+      conditions.push(`e.date_time >= $${paramIndex++}`);
+      values.push(`${filters.startDate}T00:00:00.000Z`); // Início do dia em UTC
+    }
+    if (filters?.endDate) {
+      conditions.push(`e.date_time <= $${paramIndex++}`);
+      values.push(`${filters.endDate}T23:59:59.999Z`); // Fim do dia em UTC
+    }
+
+    if (conditions.length > 0) {
+      query += ` WHERE ${conditions.join(' AND ')}`;
+    }
+
+    query += `
       GROUP BY e.id, qc.id, r.id
       ORDER BY e.created_at DESC
     `;
 
-    const result = await pool.query(query);
+    const result = await pool.query(query, values);
     return result.rows;
   }
 

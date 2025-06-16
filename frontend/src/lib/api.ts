@@ -33,7 +33,19 @@ async function fetchAPI<T>(
 // Serviço de Expedição
 export const expeditionService = {
   // Obter todas as expedições
-  getAll: () => fetchAPI<Expedition[]>('/expeditions'),
+  getAll: (filters?: any) => {
+    let queryString = '';
+    if (filters) {
+      const params = new URLSearchParams();
+      for (const key in filters) {
+        if (filters[key] !== undefined && filters[key] !== null) {
+          params.append(key, filters[key]);
+        }
+      }
+      queryString = params.toString();
+    }
+    return fetchAPI<Expedition[]>(`/expeditions${queryString ? `?${queryString}` : ''}`);
+  },
 
   // Obter estatísticas
   getStats: () => fetchAPI<ExpeditionStats>('/expeditions/stats'),

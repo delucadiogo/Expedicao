@@ -12,9 +12,11 @@ export class ExpeditionController {
   // Obter todas as expedições
   getAll = async (req: Request, res: Response) => {
     try {
-      const expeditions = await this.expeditionService.getAll();
+      const filters = req.query;
+      const expeditions = await this.expeditionService.getAll(filters);
       res.json(expeditions);
     } catch (error) {
+      console.error('Erro ao buscar expedições no controller:', error);
       res.status(500).json({ error: 'Erro ao buscar expedições' });
     }
   };

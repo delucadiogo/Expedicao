@@ -27,11 +27,11 @@ export function useExpedition() {
   }, []);
 
   // Carregar todas as expedições
-  const loadExpeditions = useCallback(async () => {
+  const loadExpeditions = useCallback(async (filters?: any) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await expeditionService.getAll();
+      const data = await expeditionService.getAll(filters);
       setExpeditions(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar expedições');
