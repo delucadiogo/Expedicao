@@ -1,12 +1,13 @@
 # docker-compose-production.yml - Versão para produção usando imagens pré-construídas
 # Para usar no Portainer após configurar GitHub Actions + Docker Hub
+# IMPORTANTE: Substitua "SEU_USUARIO_DOCKERHUB" pelo seu nome de usuário real do Docker Hub
 
 version: '3.8'
 
 services:
   # Serviço de Backend (API Node.js/TypeScript)
   backend:
-    image: seu_usuario/expedicao-backend:main
+    image: SEU_USUARIO_DOCKERHUB/expedicao-backend:main
     container_name: expedicao_backend
     ports:
       - "3001:3001"
@@ -30,7 +31,7 @@ services:
 
   # Serviço de Frontend (Aplicação React com Nginx)
   frontend:
-    image: seu_usuario/expedicao-frontend:main
+    image: SEU_USUARIO_DOCKERHUB/expedicao-frontend:main
     container_name: expedicao_frontend
     ports:
       - "80:80"
