@@ -7,7 +7,8 @@ import { ExpeditionResponsible, CreateExpeditionResponsibleDTO, UpdateExpedition
 import { Supplier, CreateSupplierDTO, UpdateSupplierDTO } from '@/types/supplier';
 import { QualityResponsible, CreateQualityResponsibleDTO, UpdateQualityResponsibleDTO } from '@/types/qualityResponsible';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+// Usar proxy reverso do nginx em produção, localhost em desenvolvimento
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Função auxiliar para fazer requisições
 async function fetchAPI<T>(
