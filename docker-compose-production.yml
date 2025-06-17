@@ -43,7 +43,7 @@ services:
     image: SEU_USUARIO_DOCKERHUB/expedicao-frontend:latest
     container_name: expedicao_frontend
     ports:
-      - "8080:80"
+      - "80:80"
     depends_on:
       - backend
     restart: unless-stopped
