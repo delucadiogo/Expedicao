@@ -12,7 +12,13 @@ services:
     ports:
       - "3001:3001"
     environment:
-      # Configurações do banco de dados
+      # Configurações do banco de dados (usando nomes que o backend espera)
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_NAME: expedicao_db
+      # URL alternativa para compatibilidade
       DATABASE_URL: postgres://user:password@db:5432/expedicao_db
       PORT: 3001
       # Configurações de segurança (ALTERE EM PRODUÇÃO!)
