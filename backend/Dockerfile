@@ -9,7 +9,7 @@ WORKDIR /app
 # Copia os arquivos de configuração de pacotes
 COPY package*.json ./
 
-# Instala as dependências do Node.js.
+# Instala todas as dependências (incluindo devDependencies para build)
 RUN npm ci
 
 # Copia todo o código-fonte do backend para o contêiner.
