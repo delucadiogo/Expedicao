@@ -7,7 +7,7 @@ version: '3.8'
 services:
   # Serviço de Backend (API Node.js/TypeScript)
   backend:
-    image: SEU_USUARIO_DOCKERHUB/expedicao-backend:main
+    image: SEU_USUARIO_DOCKERHUB/expedicao-backend:latest
     container_name: expedicao_backend
     ports:
       - "3001:3001"
@@ -31,7 +31,7 @@ services:
 
   # Serviço de Frontend (Aplicação React com Nginx)
   frontend:
-    image: SEU_USUARIO_DOCKERHUB/expedicao-frontend:main
+    image: SEU_USUARIO_DOCKERHUB/expedicao-frontend:latest
     container_name: expedicao_frontend
     ports:
       - "80:80"
@@ -55,8 +55,6 @@ services:
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     volumes:
       - db_data:/var/lib/postgresql/data
-      # Para produção, você pode usar um volume separado para migrações
-      - ./migrations:/docker-entrypoint-initdb.d
     restart: unless-stopped
     logging:
       driver: "json-file"
