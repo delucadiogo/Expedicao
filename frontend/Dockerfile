@@ -15,6 +15,10 @@ RUN npm ci
 # Copia todo o código-fonte do frontend para o contêiner.
 COPY . .
 
+# *** NOVO: Define a variável de ambiente VITE_API_URL para o build ***
+# Isso garante que todas as chamadas de API no build final usem o caminho relativo /api
+ENV VITE_API_URL=/api
+
 # Constrói a aplicação React para produção.
 RUN npm run build
 
