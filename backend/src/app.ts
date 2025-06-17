@@ -17,9 +17,21 @@ dotenv.config();
 
 const app = express();
 
+// Configuração do CORS
+app.use(cors({
+  origin: true, // Permite todas as origens
+  credentials: true, // Permite cookies
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 // Middleware
-app.use(cors());
 app.use(express.json());
+
+// Rota de health check (antes das outras rotas)
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // Rotas
 app.use('/api', expeditionRoutes);
@@ -32,18 +44,20 @@ app.use('/api/suppliers', supplierRoutes);
 app.use('/api/quality-responsibles', qualityResponsibleRoutes);
 app.use('/api/auth', authRoutes);
 
-// Rota de health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+// Rota de teste para verificar se a API está funcionando
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'API está funcionando!', timestamp: new Date().toISOString() });
 });
 
 // Inicializar servidor
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 // Testar conexão com o banco de dados antes de iniciar o servidor
 testConnection().then(() => {
-  app.listen(PORT, () => {
+  app.listen(Number(PORT), '0.0.0.0', () => {
     console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(`Health check disponível em: http://localhost:${PORT}/health`);
+    console.log(`Teste da API disponível em: http://localhost:${PORT}/api/test`);
   });
 }).catch(error => {
   console.error('Erro ao iniciar o servidor:', error);
