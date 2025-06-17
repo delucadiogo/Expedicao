@@ -1,0 +1,71 @@
+# docker-compose-portainer-git.yml - Versão para usar com repositório Git no Portainer
+# Para usar: Stacks → Add stack → Repository → Configure o Git
+
+version: '3.8'
+
+services:
+  # Serviço de Backend (API Node.js/TypeScript)
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: expedicao_backend
+    ports:
+      - "3001:3001"
+    environment:
+      # Configurações do banco de dados
+      DATABASE_URL: postgres://user:password@db:5432/expedicao_db
+      PORT: 3001
+      # Configurações de segurança (ALTERE EM PRODUÇÃO!)
+      JWT_SECRET: sua_chave_secreta_aqui_mude_em_producao
+      ALLOWED_EMAIL_DOMAINS: seu_dominio.com,outro_dominio.com
+      # Configurações adicionais
+      NODE_ENV: production
+    depends_on:
+      - db
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Serviço de Frontend (Aplicação React com Nginx)
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: expedicao_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Serviço de Banco de Dados (PostgreSQL 17)
+  db:
+    image: postgres:17-alpine
+    container_name: expedicao_db
+    environment:
+      POSTGRES_DB: expedicao_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./backend/src/database/migrations/001_initial_schema.sql:/docker-entrypoint-initdb.d/001_initial_schema.sql
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  db_data:
+    driver: local 

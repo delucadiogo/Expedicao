@@ -1,0 +1,47 @@
+# docker-compose-remote.yml - Versão alternativa usando repositório remoto
+# ATENÇÃO: Esta versão requer que você clone o repositório primeiro
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: expedicao_backend
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgres://user:password@db:5432/expedicao_db
+      PORT: 3001
+      JWT_SECRET: sua_chave_secreta_aqui
+      ALLOWED_EMAIL_DOMAINS: seu_dominio.com,outro_dominio.com
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: expedicao_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  db:
+    image: postgres:17-alpine
+    container_name: expedicao_db
+    environment:
+      POSTGRES_DB: expedicao_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./backend/src/database/migrations/001_initial_schema.sql:/docker-entrypoint-initdb.d/001_initial_schema.sql
+    restart: unless-stopped
+
+volumes:
+  db_data: 
