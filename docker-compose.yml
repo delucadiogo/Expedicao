@@ -46,10 +46,10 @@ services:
     build: ./frontend
     # Define um nome específico para o contêiner.
     container_name: expedicao_frontend
-    # Mapeia a porta 80 do host (porta padrão HTTP) para a porta 80 do contêiner (Nginx).
+    # Mapeia a porta 8080 do host para a porta 80 do contêiner (Nginx).
     # Se você for usar HTTPS (recomendado), a porta 443 do host será mapeada para um reverse proxy (ex: Nginx externo ou Traefik).
     ports:
-      - "80:80"
+      - "8080:80"
     # O frontend pode depender do backend se fizer requisições diretas ao contêiner do backend
     # (embora um reverse proxy no Nginx do frontend seja mais comum para a API).
     depends_on:
