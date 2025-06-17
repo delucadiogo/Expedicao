@@ -1,0 +1,45 @@
+# docker-compose-simple.yml - Versão simplificada para teste
+version: '3.8'
+
+services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: expedicao_backend
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgres://user:password@db:5432/expedicao_db
+      PORT: 3001
+      JWT_SECRET: test_secret_key
+      ALLOWED_EMAIL_DOMAINS: test.com
+      NODE_ENV: production
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: expedicao_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  db:
+    image: postgres:17-alpine
+    container_name: expedicao_db
+    environment:
+      POSTGRES_DB: expedicao_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  db_data: 
