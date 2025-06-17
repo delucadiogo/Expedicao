@@ -37,7 +37,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ProductCatalog } from '@/types/productCatalog';
 import { productCatalogService } from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 const EXPEDITION_STATUS_VALUES: ExpeditionStatus[] = ['pendente', 'em_analise', 'aprovado', 'rejeitado', 'retido'];
 
@@ -127,92 +127,135 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
   const [isNewProductDialogOpen, setIsNewProductDialogOpen] = useState(false);
   const [productCatalog, setProductCatalog] = useState<ProductCatalog[]>([]);
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const fetchDrivers = useCallback(async () => {
+    try {
+      const data = await driverService.getAll();
+      setDrivers(data);
+    } catch (error) {
+      console.error('Erro ao carregar motoristas:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível carregar os motoristas.',
+        variant: 'destructive',
+      });
+    }
+  }, [setDrivers, toast]);
+
+  const fetchTransportCompanies = useCallback(async () => {
+    try {
+      const data = await transportCompanyService.getAll();
+      setTransportCompanies(data);
+    } catch (error) {
+      console.error('Erro ao carregar empresas de transporte:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível carregar as empresas de transporte.',
+        variant: 'destructive',
+      });
+    }
+  }, [setTransportCompanies, toast]);
+
+  const fetchSuppliers = useCallback(async () => {
+    try {
+      const data = await supplierService.getAll();
+      setSuppliers(data);
+    } catch (error) {
+      console.error('Erro ao carregar fornecedores:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível carregar os fornecedores.',
+        variant: 'destructive',
+      });
+    }
+  }, [setSuppliers, toast]);
+
+  const fetchExpeditionResponsibles = useCallback(async () => {
+    try {
+      const data = await expeditionResponsibleService.getAll();
+      setExpeditionResponsibles(data);
+    } catch (error) {
+      console.error('Erro ao carregar responsáveis de expedição:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível carregar os responsáveis de expedição.',
+        variant: 'destructive',
+      });
+    }
+  }, [setExpeditionResponsibles, toast]);
+
+  const fetchTrucks = useCallback(async () => {
+    try {
+      console.log('Tentando carregar caminhões...');
+      const data = await truckService.getAll();
+      console.log('Caminhões carregados:', data);
+      setTrucks(data);
+    } catch (error) {
+      console.error('Erro ao carregar caminhões:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível carregar os caminhões.',
+        variant: 'destructive',
+      });
+    }
+  }, [setTrucks, toast]);
+
+  const fetchQualityResponsibles = useCallback(async () => {
+    try {
+      const data = await qualityResponsibleService.getAll();
+      setQualityResponsibles(data);
+    } catch (error) {
+      console.error('Erro ao carregar responsáveis de qualidade:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível carregar os responsáveis de qualidade.',
+        variant: 'destructive',
+      });
+    }
+  }, [setQualityResponsibles, toast]);
+
+  const fetchProductCatalog = useCallback(async () => {
+    try {
+      const data = await productCatalogService.getAll();
+      setProductCatalog(data);
+    } catch (error) {
+      console.error('Erro ao carregar catálogo de produtos:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível carregar o catálogo de produtos.',
+        variant: 'destructive',
+      });
+    }
+  }, [setProductCatalog, toast]);
 
   useEffect(() => {
-    const fetchDrivers = async () => {
-      try {
-        const data = await driverService.getAll();
-        setDrivers(data);
-      } catch (error) {
-        console.error('Erro ao carregar motoristas:', error);
-      }
-    };
     fetchDrivers();
-  }, []);
+  }, [fetchDrivers]);
 
   useEffect(() => {
-    const fetchTransportCompanies = async () => {
-      try {
-        const data = await transportCompanyService.getAll();
-        setTransportCompanies(data);
-      } catch (error) {
-        console.error('Erro ao carregar empresas de transporte:', error);
-      }
-    };
     fetchTransportCompanies();
-  }, []);
+  }, [fetchTransportCompanies]);
 
   useEffect(() => {
-    const fetchSuppliers = async () => {
-      try {
-        const data = await supplierService.getAll();
-        setSuppliers(data);
-      } catch (error) {
-        console.error('Erro ao carregar fornecedores:', error);
-      }
-    };
     fetchSuppliers();
-  }, []);
+  }, [fetchSuppliers]);
 
   useEffect(() => {
-    const fetchExpeditionResponsibles = async () => {
-      try {
-        const data = await expeditionResponsibleService.getAll();
-        setExpeditionResponsibles(data);
-      } catch (error) {
-        console.error('Erro ao carregar responsáveis de expedição:', error);
-      }
-    };
     fetchExpeditionResponsibles();
-  }, []);
+  }, [fetchExpeditionResponsibles]);
 
   useEffect(() => {
-    const fetchTrucks = async () => {
-      try {
-        console.log('Tentando carregar caminhões...');
-        const data = await truckService.getAll();
-        console.log('Caminhões carregados:', data);
-        setTrucks(data);
-      } catch (error) {
-        console.error('Erro ao carregar caminhões:', error);
-      }
-    };
     fetchTrucks();
-  }, []);
+  }, [fetchTrucks]);
 
   useEffect(() => {
-    const fetchQualityResponsibles = async () => {
-      try {
-        const data = await qualityResponsibleService.getAll();
-        setQualityResponsibles(data);
-      } catch (error) {
-        console.error('Erro ao carregar responsáveis de qualidade:', error);
-      }
-    };
     fetchQualityResponsibles();
-  }, []);
+  }, [fetchQualityResponsibles]);
 
   useEffect(() => {
-    const fetchProductCatalog = async () => {
-      try {
-        const data = await productCatalogService.getAll();
-        setProductCatalog(data);
-      } catch (error) {
-        console.error('Erro ao carregar catálogo de produtos:', error);
-      }
-    };
     fetchProductCatalog();
-  }, []);
+  }, [fetchProductCatalog]);
 
   const generateExpeditionNumber = useCallback(() => {
     const date = new Date();
@@ -959,9 +1002,15 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
         <NewTruckDialog
           isOpen={isNewTruckDialogOpen}
           onClose={() => setIsNewTruckDialogOpen(false)}
-          onSuccess={() => {
+          onSuccess={(createdTruck) => {
+            console.log('Caminhão criado com sucesso no diálogo, recebido em ExpeditionForm:', createdTruck);
             setIsNewTruckDialogOpen(false);
-            void fetchTrucks();
+            fetchTrucks();
+            toast({
+              title: 'Sucesso',
+              description: 'Caminhão cadastrado com sucesso e lista atualizada.',
+              variant: 'success',
+            });
           }}
         />
 
@@ -970,7 +1019,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
           onClose={() => setIsNewDriverDialogOpen(false)}
           onSuccess={() => {
             setIsNewDriverDialogOpen(false);
-            void fetchDrivers();
+            fetchDrivers();
           }}
         />
 
@@ -979,7 +1028,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
           onClose={() => setIsNewTransportCompanyDialogOpen(false)}
           onSuccess={() => {
             setIsNewTransportCompanyDialogOpen(false);
-            void fetchTransportCompanies();
+            fetchTransportCompanies();
           }}
         />
 
@@ -988,7 +1037,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
           onClose={() => setIsNewSupplierDialogOpen(false)}
           onSuccess={() => {
             setIsNewSupplierDialogOpen(false);
-            void fetchSuppliers();
+            fetchSuppliers();
           }}
         />
 
@@ -997,7 +1046,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
           onClose={() => setIsNewExpeditionResponsibleDialogOpen(false)}
           onSuccess={() => {
             setIsNewExpeditionResponsibleDialogOpen(false);
-            void fetchExpeditionResponsibles();
+            fetchExpeditionResponsibles();
           }}
         />
 
@@ -1006,7 +1055,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
           onClose={() => setIsNewQualityResponsibleDialogOpen(false)}
           onSuccess={() => {
             setIsNewQualityResponsibleDialogOpen(false);
-            void fetchQualityResponsibles();
+            fetchQualityResponsibles();
           }}
         />
 
@@ -1015,7 +1064,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
           onClose={() => setIsNewProductDialogOpen(false)}
           onSuccess={() => {
             setIsNewProductDialogOpen(false);
-            void fetchProductCatalog();
+            fetchProductCatalog();
           }}
         />
 
