@@ -28,7 +28,7 @@ services:
       PORT: 3001
       # Outras variáveis de ambiente que seu backend possa precisar (ex: chaves JWT, domínios permitidos).
       JWT_SECRET: sua_chave_secreta_aqui # MUDE ISTO EM PRODUÇÃO!
-      ALLOWED_EMAIL_DOMAINS: seu_dominio.com,outro_dominio.com # Adapte para os domínios permitidos
+      ALLOWED_EMAIL_DOMAINS: oliveira.com.br,seu_dominio.com,outro_dominio.com # Adapte para os domínios permitidos
     # Garante que o serviço do banco de dados ('db') inicie antes do backend.
     depends_on:
       - db

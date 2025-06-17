@@ -33,6 +33,11 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Rota de health check via API (para compatibilidade com proxy reverso)
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Rotas
 app.use('/api', expeditionRoutes);
 app.use('/api', driverRoutes);
