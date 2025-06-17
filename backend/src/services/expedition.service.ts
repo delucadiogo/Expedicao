@@ -613,6 +613,126 @@ export class ExpeditionService {
     } 
   }
 
+  // Atualizar controle de qualidade (versão standalone)
+  async updateQualityControlStandalone(id: string, qualityControlData: any): Promise<Expedition | null> {
+    const client = await pool.connect();
+    
+    try {
+      await client.query('BEGIN');
+      
+      const qualityControlQuery = `
+        UPDATE quality_control
+        SET 
+          responsible_name = $1,
+          analysis_date_time = $2,
+          approval_status = $3,
+          justification = $4,
+          digital_signature = $5,
+          observations = $6
+        WHERE expedition_id = $7
+      `;
+
+      const qualityControlValues = [
+        qualityControlData.responsibleName,
+        qualityControlData.analysisDateTime,
+        qualityControlData.approvalStatus,
+        qualityControlData.justification,
+        qualityControlData.digitalSignature,
+        qualityControlData.observations,
+        id
+      ];
+
+      await client.query(qualityControlQuery, qualityControlValues);
+
+      // Atualizar status da expedição baseado no status do controle de qualidade
+      const statusUpdateQuery = `
+        UPDATE expeditions
+        SET 
+          status = CASE 
+            WHEN $1 = 'aprovado' THEN 'aprovado'
+            WHEN $1 = 'rejeitado' THEN 'rejeitado'
+            ELSE status
+          END,
+          updated_at = $2
+        WHERE id = $3
+      `;
+
+      await client.query(statusUpdateQuery, [
+        qualityControlData.approvalStatus,
+        new Date().toISOString(),
+        id
+      ]);
+
+      await client.query('COMMIT');
+      return this.getById(id);
+    } catch (error) {
+      console.error('Erro ao atualizar controle de qualidade no service:', error);
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  // Atualizar rejeição (versão standalone)
+  async updateRejectionStandalone(id: string, rejectionData: any): Promise<Expedition | null> {
+    const client = await pool.connect();
+    
+    try {
+      await client.query('BEGIN');
+      
+      const rejectionQuery = `
+        UPDATE rejections
+        SET 
+          reason = $1,
+          sent_to_supplies = $2,
+          supplies_date_time = $3,
+          supplies_responsible = $4,
+          cargo_retained = $5,
+          retained_quantity = $6,
+          retention_location = $7,
+          corrective_actions = $8
+        WHERE expedition_id = $9
+      `;
+
+      const rejectionValues = [
+        rejectionData.reason,
+        rejectionData.sentToSupplies,
+        rejectionData.suppliesDateTime,
+        rejectionData.suppliesResponsible,
+        rejectionData.cargoRetained,
+        Number(rejectionData.retainedQuantity),
+        rejectionData.retentionLocation,
+        rejectionData.correctiveActions,
+        id
+      ];
+
+      await client.query(rejectionQuery, rejectionValues);
+
+      // Atualizar status da expedição para retido se o cargo estiver retido
+      if (rejectionData.cargoRetained) {
+        const statusUpdateQuery = `
+          UPDATE expeditions
+          SET 
+            status = 'retido',
+            updated_at = $1
+          WHERE id = $2
+        `;
+
+        await client.query(statusUpdateQuery, [new Date().toISOString(), id]);
+      }
+
+      await client.query('COMMIT');
+      return this.getById(id);
+    } catch (error) {
+      console.error('Erro ao atualizar rejeição no service:', error);
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
   private toSnakeCase(str: string): string {
     return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
   }

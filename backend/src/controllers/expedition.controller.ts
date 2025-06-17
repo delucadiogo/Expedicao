@@ -102,7 +102,7 @@ export class ExpeditionController {
     try {
       const { id } = req.params;
       const qualityControlData = req.body;
-      const updatedExpedition = await this.expeditionService.updateQualityControl(id, qualityControlData);
+      const updatedExpedition = await this.expeditionService.updateQualityControlStandalone(id, qualityControlData);
       
       if (!updatedExpedition) {
         return res.status(404).json({ error: 'Expedição não encontrada' });
@@ -119,7 +119,7 @@ export class ExpeditionController {
     try {
       const { id } = req.params;
       const rejectionData = req.body;
-      const updatedExpedition = await this.expeditionService.updateRejection(id, rejectionData);
+      const updatedExpedition = await this.expeditionService.updateRejectionStandalone(id, rejectionData);
       
       if (!updatedExpedition) {
         return res.status(404).json({ error: 'Expedição não encontrada' });

@@ -65,6 +65,9 @@ export interface Expedition {
   createdBy: string;
   updatedBy?: string;
   observations?: string;
+  
+  // Data/Hora de chegada do caminhão
+  arrivalDateTime?: string;
 }
 
 export interface ExpeditionStats {
@@ -94,6 +97,7 @@ export interface CreateExpeditionDTO {
   dateTime: string;
   createdBy: string;
   observations?: string;
+  arrivalDateTime?: string;
 }
 
 export type UpdateExpeditionDTO = Partial<Omit<Expedition, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'> & { status?: ExpeditionStatus }>; 
