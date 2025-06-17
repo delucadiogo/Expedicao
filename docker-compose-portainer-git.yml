@@ -17,8 +17,8 @@ services:
       DATABASE_URL: postgres://user:password@db:5432/expedicao_db
       PORT: 3001
       # Configurações de segurança (ALTERE EM PRODUÇÃO!)
-      JWT_SECRET: sua_chave_secreta_aqui_mude_em_producao
-      ALLOWED_EMAIL_DOMAINS: seu_dominio.com,outro_dominio.com
+      JWT_SECRET: fksldFGT58Gdsf
+      ALLOWED_EMAIL_DOMAINS: oliveira.com.br
       # Configurações adicionais
       NODE_ENV: production
     depends_on:
