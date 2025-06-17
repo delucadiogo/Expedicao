@@ -83,8 +83,8 @@ services:
     # Opcional: Mapeia a porta 5432 do host para a porta 5432 do contêiner.
     # Isso permite que você acesse o banco de dados diretamente da sua máquina host (ex: com um cliente SQL).
     # Cuidado com a segurança se você expor esta porta diretamente para a internet em produção.
-    # ports:
-    #   - "5432:5432"
+    ports:
+      - "5432:5432"
     # Reinicia o contêiner automaticamente se ele parar.
     restart: unless-stopped
 
