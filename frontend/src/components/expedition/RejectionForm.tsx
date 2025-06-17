@@ -37,7 +37,7 @@ export default function RejectionForm({ expeditionId, onSuccess }: RejectionForm
       sentToSupplies: expedition?.rejection?.sentToSupplies || false,
       cargoRetained: expedition?.rejection?.cargoRetained || false,
       retentionLocation: expedition?.rejection?.retentionLocation || '',
-      retainedQuantity: expedition?.rejection?.retainedQuantity || '',
+      retainedQuantity: expedition?.rejection?.retainedQuantity !== undefined ? String(expedition.rejection.retainedQuantity) : '',
       correctiveActions: expedition?.rejection?.correctiveActions || '',
       responsible: expedition?.rejection?.responsible || '',
     },
