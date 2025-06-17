@@ -226,6 +226,40 @@ export function useExpedition() {
     loadStats({});
   }, [loadExpeditions, loadStats]);
 
+  useEffect(() => {
+    const fetchExpeditions = async () => {
+      setLoading(true);
+      try {
+        const data = await expeditionService.getAll(filters);
+        setExpeditions(data);
+        setError(null);
+      } catch (error) {
+        log.error("Erro ao buscar expedições:", error);
+        setError("Não foi possível carregar as expedições.");
+        toast.error("Erro", { description: "Não foi possível carregar as expedições." });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExpeditions();
+  }, [filters]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await expeditionService.getStats(statsFilters);
+        setStats(data);
+        log.info('Dados de estatísticas recebidos do serviço:', data);
+      } catch (error) {
+        log.error("Erro ao buscar estatísticas:", error);
+        // Não mostrar toast para erros de estatísticas se a página principal carregou
+      }
+    };
+
+    fetchStats();
+  }, [statsFilters]);
+
   return {
     expeditions,
     stats,
