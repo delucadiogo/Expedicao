@@ -1,3 +1,6 @@
+-- Habilitar extensão para UUID
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- Criação da tabela de expedições
 CREATE TABLE expeditions (
   id UUID PRIMARY KEY,

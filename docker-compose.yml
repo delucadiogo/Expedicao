@@ -78,6 +78,8 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./backend/src/database/migrations/001_initial_schema.sql:/docker-entrypoint-initdb.d/001_initial_schema.sql
+      - ./backend/src/database/migrations/002_add_arrival_datetime.sql:/docker-entrypoint-initdb.d/002_add_arrival_datetime.sql
+      - ./backend/src/database/migrations/003_add_expedition_observations_column.sql:/docker-entrypoint-initdb.d/003_add_expedition_observations_column.sql
     # Opcional: Mapeia a porta 5432 do host para a porta 5432 do contêiner.
     # Isso permite que você acesse o banco de dados diretamente da sua máquina host (ex: com um cliente SQL).
     # Cuidado com a segurança se você expor esta porta diretamente para a internet em produção.
