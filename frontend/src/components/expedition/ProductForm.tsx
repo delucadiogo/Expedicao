@@ -75,11 +75,11 @@ export default function ProductForm({ product, onSubmit, onCancel }: ProductForm
   }, []);
 
   React.useEffect(() => {
-    console.log('ProductForm useEffect: product prop', product);
-    console.log('ProductForm useEffect: productCatalog', productCatalog);
+    //console.log('ProductForm useEffect: product prop', product);
+    //console.log('ProductForm useEffect: productCatalog', productCatalog);
     if (product && productCatalog.length > 0) {
       const catalogProduct = productCatalog.find(p => p.name === product.name);
-      console.log('ProductForm useEffect: found catalogProduct by name', catalogProduct);
+      //console.log('ProductForm useEffect: found catalogProduct by name', catalogProduct);
       if (catalogProduct) {
         form.reset({
           id: product.id,
@@ -92,7 +92,7 @@ export default function ProductForm({ product, onSubmit, onCancel }: ProductForm
           status: product.status || 'a_verificar',
           observations: product.observations || '',
         });
-        console.log('ProductForm useEffect: form.name after reset', form.getValues().name);
+        //console.log('ProductForm useEffect: form.name after reset', form.getValues().name);
       } else {
         console.warn(`Product '${product.name}' from expedition not found in product catalog during useEffect.`);
       }
@@ -100,9 +100,9 @@ export default function ProductForm({ product, onSubmit, onCancel }: ProductForm
   }, [product, productCatalog, form]);
 
   const onFormSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log('ProductForm onFormSubmit: values.name (should be ID)', values.name);
+    //console.log('ProductForm onFormSubmit: values.name (should be ID)', values.name);
     const selectedProductCatalog = productCatalog.find(p => p.id === values.name);
-    console.log('ProductForm onFormSubmit: selectedProductCatalog result', selectedProductCatalog);
+    //console.log('ProductForm onFormSubmit: selectedProductCatalog result', selectedProductCatalog);
 
     if (!selectedProductCatalog) {
       alert('Produto não encontrado no catálogo. Por favor, selecione um produto válido ou cadastre um novo.');

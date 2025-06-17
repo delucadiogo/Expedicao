@@ -187,9 +187,9 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
 
   const fetchTrucks = useCallback(async () => {
     try {
-      console.log('Tentando carregar caminhões...');
+      //console.log('Tentando carregar caminhões...');
       const data = await truckService.getAll();
-      console.log('Caminhões carregados:', data);
+      //console.log('Caminhões carregados:', data);
       setTrucks(data);
     } catch (error) {
       console.error('Erro ao carregar caminhões:', error);
@@ -329,7 +329,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
   }, [initialData, drivers, transportCompanies, suppliers, expeditionResponsibles, qualityResponsibles, form]);
 
   const onSubmitForm = async (values: z.infer<typeof formSchema>) => {
-    console.log('Values on submission:', values);
+    //console.log('Values on submission:', values);
 
     const selectedDriver = drivers.find(d => d.id === values.driverName);
     const selectedTransportCompany = transportCompanies.find(tc => tc.id === values.transportCompany);
@@ -361,10 +361,10 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
       observations: values.observations,
     };
 
-    console.log('dataToSend before service call:', dataToSend);
+    //console.log('dataToSend before service call:', dataToSend);
 
     if (initialData) {
-      console.log('Submitting data from ExpeditionForm:', dataToSend);
+      //console.log('Submitting data from ExpeditionForm:', dataToSend);
       try {
         await onSubmit(dataToSend);
         toast({
@@ -376,7 +376,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
         console.error("Erro ao atualizar expedição:", error);
       }
     } else {
-      console.log('Tentando criar expedição...');
+      //console.log('Tentando criar expedição...');
       try {
         const expeditionData: CreateExpeditionDTO = {
           expeditionNumber: dataToSend.expeditionNumber,
@@ -404,7 +404,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
           observations: dataToSend.observations,
         };
 
-        console.log('expeditionData before createExpedition:', expeditionData);
+        //console.log('expeditionData before createExpedition:', expeditionData);
 
         await createExpedition(expeditionData);
         form.reset({
@@ -430,20 +430,20 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
   };
 
   const handleAddProduct = (product: Product) => {
-    console.log('handleAddProduct: received product', product);
-    console.log('handleAddProduct: productToEdit', productToEdit);
+    //console.log('handleAddProduct: received product', product);
+    //console.log('handleAddProduct: productToEdit', productToEdit);
     let updatedProducts;
     if (productToEdit) {
       updatedProducts = products.map((p) => {
         if (p.id === product.id) {
-          console.log('handleAddProduct: found matching product for update', product);
+          //console.log('handleAddProduct: found matching product for update', product);
           return product; // Replace with the updated product
         }
         return p;
       });
     } else {
       updatedProducts = [...products, { ...product, id: uuidv4() }];
-      console.log('handleAddProduct: added new product', updatedProducts);
+      //console.log('handleAddProduct: added new product', updatedProducts);
     }
     setProducts(updatedProducts);
     form.setValue('products', updatedProducts);
@@ -452,10 +452,10 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
   };
 
   const handleEditProduct = (product: Product) => {
-    console.log('Attempting to edit product:', product);
+    //console.log('Attempting to edit product:', product);
     setProductToEdit(product);
     setIsProductDialogOpen(true);
-    console.log('isProductDialogOpen after set:', true);
+    //console.log('isProductDialogOpen after set:', true);
   };
 
   const handleDeleteProduct = (product: Product) => {

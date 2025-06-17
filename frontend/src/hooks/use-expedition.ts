@@ -51,7 +51,7 @@ export function useExpedition() {
       setLoading(true);
       setError(null);
       const data = await expeditionService.getStats(filters);
-      console.log('Dados de estatísticas recebidos do serviço:', data);
+      //console.log('Dados de estatísticas recebidos do serviço:', data);
       setStats({
         total: data.total,
         pending: data.pending,
