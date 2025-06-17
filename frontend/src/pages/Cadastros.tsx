@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,11 +7,11 @@ import CadastroMotoristas from '@/components/cadastros/CadastroMotoristas';
 import CadastroCaminhoes from '@/components/cadastros/CadastroCaminhoes';
 import CadastroEmpresas from '@/components/cadastros/CadastroEmpresas';
 import CadastroProdutos from '@/components/cadastros/CadastroProdutos';
-import CadastroResponsaveis from '@/components/cadastros/CadastroResponsaveis';
+import CadastroResponsaveisExpedicao from '@/components/cadastros/CadastroResponsaveisExpedicao';
 import CadastroFornecedores from '@/components/cadastros/CadastroFornecedores';
-import CadastroQualidade from '@/components/cadastros/CadastroQualidade';
+import CadastroResponsaveisQualidade from '@/components/cadastros/CadastroResponsaveisQualidade';
 
-type CadastroType = 'motoristas' | 'caminhoes' | 'empresas' | 'produtos' | 'responsaveis' | 'fornecedores' | 'qualidade' | null;
+type CadastroType = 'motoristas' | 'caminhoes' | 'empresas' | 'produtos' | 'responsaveisExpedicao' | 'fornecedores' | 'responsaveisQualidade' | null;
 
 const Cadastros = () => {
   const [selectedCadastro, setSelectedCadastro] = useState<CadastroType>(null);
@@ -48,9 +47,9 @@ const Cadastros = () => {
       color: 'bg-orange-500'
     },
     {
-      type: 'responsaveis' as CadastroType,
+      type: 'responsaveisExpedicao' as CadastroType,
       title: 'Responsáveis de Expedição',
-      description: 'Cadastrar responsáveis internos',
+      description: 'Cadastrar responsáveis internos de expedição',
       icon: UserCheck,
       color: 'bg-cyan-500'
     },
@@ -62,7 +61,7 @@ const Cadastros = () => {
       color: 'bg-red-500'
     },
     {
-      type: 'qualidade' as CadastroType,
+      type: 'responsaveisQualidade' as CadastroType,
       title: 'Responsáveis da Qualidade',
       description: 'Cadastrar responsáveis de qualidade',
       icon: Clipboard,
@@ -81,12 +80,12 @@ const Cadastros = () => {
           return <CadastroEmpresas onBack={() => setSelectedCadastro(null)} />;
         case 'produtos':
           return <CadastroProdutos onBack={() => setSelectedCadastro(null)} />;
-        case 'responsaveis':
-          return <CadastroResponsaveis onBack={() => setSelectedCadastro(null)} />;
+        case 'responsaveisExpedicao':
+          return <CadastroResponsaveisExpedicao onBack={() => setSelectedCadastro(null)} />;
         case 'fornecedores':
           return <CadastroFornecedores onBack={() => setSelectedCadastro(null)} />;
-        case 'qualidade':
-          return <CadastroQualidade onBack={() => setSelectedCadastro(null)} />;
+        case 'responsaveisQualidade':
+          return <CadastroResponsaveisQualidade onBack={() => setSelectedCadastro(null)} />;
         default:
           return null;
       }
