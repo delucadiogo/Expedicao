@@ -17,21 +17,17 @@ const Login = () => {
 
   // Redirecionar se já estiver autenticado
   useEffect(() => {
-    console.log('Login: verificando autenticação...', isAuthenticated);
     if (isAuthenticated) {
-      console.log('Login: usuário já autenticado, redirecionando...');
       navigate('/');
     }
   }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login: tentando fazer login...');
     setIsLoading(true);
 
     try {
       const success = await login(email, password);
-      console.log('Login: resultado do login:', success);
       
       if (success) {
         toast({
