@@ -12,7 +12,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instala as dependências do Node.js.
-RUN npm install
+RUN npm ci --only=production
 
 # Copia todo o código-fonte do frontend para o contêiner.
 COPY . .
@@ -20,6 +20,9 @@ COPY . .
 # Constrói a aplicação React para produção.
 # Este comando deve gerar os arquivos estáticos na pasta 'dist' (ou 'build', 'out').
 RUN npm run build
+
+# Verifica se a pasta dist foi criada
+RUN ls -la && echo "Conteúdo da pasta dist:" && ls -la dist/
 
 # --- Estágio de Produção ---
 # Inicia um novo estágio usando uma imagem leve do Nginx para servir os arquivos estáticos.
@@ -35,6 +38,9 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Copia os arquivos estáticos da aplicação construída do estágio de build para o diretório de serviço do Nginx.
 # Ajuste '/app/dist' para a pasta real onde seu frontend é compilado (ex: /app/build, /app/out).
 COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Verifica se os arquivos foram copiados corretamente
+RUN ls -la /usr/share/nginx/html/
 
 # Expõe a porta padrão do Nginx (80) para acesso externo.
 EXPOSE 80
