@@ -112,9 +112,7 @@ export class ExpeditionService {
     `;
 
     const result = await pool.query(query, values);
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Resultado da query getAll (backend - FINAL):', result.rows); // Log para depuração
-    }
+    console.log('Resultado da query getAll (backend - FINAL):', result.rows); // Log para depuração
     return result.rows;
   }
 
@@ -148,18 +146,15 @@ export class ExpeditionService {
       if (conditions.length > 0) {
         query += ` WHERE ${conditions.join(' AND ')}`;
       }
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('Query final para getStats (backend):', query);
-        console.log('Valores da query para getStats (backend):', values);
-      }
+
+      console.log('Query final para getStats (backend):', query);
+      console.log('Valores da query para getStats (backend):', values);
 
       const result = await pool.query(query, values);
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('Resultado do getStats do backend:', result.rows[0]);
-      }
+      console.log('Resultado do getStats do backend:', result.rows[0]);
       return result.rows[0];
     } catch (error) {
-      console.error('Erro ao buscar estatísticas no service:', error); // Mantido para depuração em produção
+      console.error('Erro ao buscar estatísticas no service:', error); // Log detalhado
       throw error;
     }
   }
@@ -226,23 +221,16 @@ export class ExpeditionService {
     `;
 
     const result = await pool.query(query, [id]);
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Resultado da query getById (backend - FINAL):', result.rows[0]); // Log para depuração
-    }
+    console.log('Resultado da query getById (backend - FINAL):', result.rows[0]); // Log para depuração
     return result.rows[0] || null;
   }
 
   // Criar nova expedição
   async create(data: CreateExpeditionDTO): Promise<Expedition> {
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('ExpeditionService.create received data:', data); // Log para depuração
-    }
+    console.log('ExpeditionService.create received data:', data); // Log para depuração
     const client = await pool.connect();
     
     try {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('BEGIN');
-      }
       await client.query('BEGIN');
 
       const expeditionId = uuidv4();
@@ -367,15 +355,11 @@ export class ExpeditionService {
 
   // Atualizar expedição
   async update(id: string, data: UpdateExpeditionDTO): Promise<Expedition | null> {
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('ExpeditionService.update received data:', data); // Log para depuração
-    }
+    console.log('ExpeditionService.update received data:', data); // Log para depuração
     const client = await pool.connect();
     
     try {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('BEGINNING TRANSACTION'); // Novo log
-      }
+      console.log('BEGINNING TRANSACTION'); // Novo log
       await client.query('BEGIN');
 
       const now = new Date().toISOString();
@@ -387,9 +371,7 @@ export class ExpeditionService {
 
       // Tratar campos específicos primeiro
       if ('observations' in data) {
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('Observations value:', data.observations); // Log para debug
-        }
+        console.log('Observations value:', data.observations); // Log para debug
         updateFields.push(`observations = $${paramCount}`);
         updateValues.push(data.observations || null);
         paramCount++;
@@ -425,16 +407,12 @@ export class ExpeditionService {
         `;
 
         updateValues.push(id);
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('Update fields:', updateFields); // Log para debug
-          console.log('Update values:', updateValues); // Log para debug
-          console.log('Final update query:', updateQuery); // Log para debug
-        }
+        console.log('Update fields:', updateFields); // Log para debug
+        console.log('Update values:', updateValues); // Log para debug
+        console.log('Final update query:', updateQuery); // Log para debug
 
         const result = await client.query(updateQuery, updateValues);
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('Result from main expedition update:', result.rows[0]); // Log para debug
-        }
+        console.log('Result from main expedition update:', result.rows[0]); // Log para debug
 
         if ((result.rowCount || 0) === 0) {
           await client.query('ROLLBACK');
@@ -444,9 +422,7 @@ export class ExpeditionService {
 
       // Atualizar produtos se fornecidos
       if (data.products) {
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('Products data received for update:', data.products);
-        }
+        console.log('Products data received for update:', data.products);
         // Remover produtos existentes associados a esta expedição para re-inserir (abordagem simplificada)
         const deleteProductsQuery = 'DELETE FROM products WHERE expedition_id = $1';
         await client.query(deleteProductsQuery, [id]);
@@ -488,15 +464,11 @@ export class ExpeditionService {
       }
 
       await client.query('COMMIT');
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('COMMITTING TRANSACTION'); // Novo log
-      }
+      console.log('COMMITTING TRANSACTION'); // Novo log
       return this.getById(id);
     } catch (error) {
       console.error('Erro ao atualizar expedição no service:', error);
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('ROLLING BACK TRANSACTION - Error:', error); // Novo log
-      }
+      console.log('ROLLING BACK TRANSACTION - Error:', error); // Novo log
       await client.query('ROLLBACK');
       throw error;
     } finally {
@@ -531,10 +503,7 @@ export class ExpeditionService {
 
   // Atualizar controle de qualidade
   async updateQualityControl(id: string, qualityControlData: any, client: PoolClient): Promise<Expedition | null> {
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('ExpeditionService.updateQualityControl received qualityControlData:', qualityControlData); // Log para depuração
-    }
-    const now = new Date().toISOString();
+    console.log('ExpeditionService.updateQualityControl received qualityControlData:', qualityControlData); // Log para depuração
     
     try {
       const qualityControlQuery = `
@@ -576,7 +545,7 @@ export class ExpeditionService {
 
       await client.query(statusUpdateQuery, [
         qualityControlData.approvalStatus,
-        now,
+        new Date().toISOString(),
         id
       ]);
 
@@ -591,10 +560,7 @@ export class ExpeditionService {
 
   // Atualizar rejeição
   async updateRejection(id: string, rejectionData: any, client: PoolClient): Promise<Expedition | null> {
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('ExpeditionService.updateRejection received rejectionData:', rejectionData); // Log para depuração
-    }
-    const now = new Date().toISOString();
+    console.log('ExpeditionService.updateRejection received rejectionData:', rejectionData); // Log para depuração
     
     try {
       const rejectionQuery = `
@@ -635,7 +601,7 @@ export class ExpeditionService {
           WHERE id = $2
         `;
 
-        await client.query(statusUpdateQuery, [now, id]);
+        await client.query(statusUpdateQuery, [new Date().toISOString(), id]);
       }
 
       // Não faremos o getById aqui, pois a transação ainda está em andamento
@@ -654,12 +620,54 @@ export class ExpeditionService {
     try {
       await client.query('BEGIN');
       
-      const updatedExpedition = await this.updateQualityControl(id, qualityControlData, client);
+      const qualityControlQuery = `
+        UPDATE quality_control
+        SET 
+          responsible_name = $1,
+          analysis_date_time = $2,
+          approval_status = $3,
+          justification = $4,
+          digital_signature = $5,
+          observations = $6
+        WHERE expedition_id = $7
+      `;
+
+      const qualityControlValues = [
+        qualityControlData.responsibleName,
+        qualityControlData.analysisDateTime,
+        qualityControlData.approvalStatus,
+        qualityControlData.justification,
+        qualityControlData.digitalSignature,
+        qualityControlData.observations,
+        id
+      ];
+
+      await client.query(qualityControlQuery, qualityControlValues);
+
+      // Atualizar status da expedição baseado no status do controle de qualidade
+      const statusUpdateQuery = `
+        UPDATE expeditions
+        SET 
+          status = CASE 
+            WHEN $1 = 'aprovado' THEN 'aprovado'
+            WHEN $1 = 'rejeitado' THEN 'rejeitado'
+            ELSE status
+          END,
+          updated_at = $2
+        WHERE id = $3
+      `;
+
+      await client.query(statusUpdateQuery, [
+        qualityControlData.approvalStatus,
+        new Date().toISOString(),
+        id
+      ]);
+
       await client.query('COMMIT');
-      return updatedExpedition;
+      return this.getById(id);
     } catch (error) {
+      console.error('Erro ao atualizar controle de qualidade no service:', error);
       await client.query('ROLLBACK');
-      console.error('Erro ao atualizar controle de qualidade standalone:', error);
       throw error;
     } finally {
       client.release();
@@ -673,12 +681,52 @@ export class ExpeditionService {
     try {
       await client.query('BEGIN');
       
-      const updatedExpedition = await this.updateRejection(id, rejectionData, client);
+      const rejectionQuery = `
+        UPDATE rejections
+        SET 
+          reason = $1,
+          sent_to_supplies = $2,
+          supplies_date_time = $3,
+          supplies_responsible = $4,
+          cargo_retained = $5,
+          retained_quantity = $6,
+          retention_location = $7,
+          corrective_actions = $8
+        WHERE expedition_id = $9
+      `;
+
+      const rejectionValues = [
+        rejectionData.reason,
+        rejectionData.sentToSupplies,
+        rejectionData.suppliesDateTime,
+        rejectionData.suppliesResponsible,
+        rejectionData.cargoRetained,
+        Number(rejectionData.retainedQuantity),
+        rejectionData.retentionLocation,
+        rejectionData.correctiveActions,
+        id
+      ];
+
+      await client.query(rejectionQuery, rejectionValues);
+
+      // Atualizar status da expedição para retido se o cargo estiver retido
+      if (rejectionData.cargoRetained) {
+        const statusUpdateQuery = `
+          UPDATE expeditions
+          SET 
+            status = 'retido',
+            updated_at = $1
+          WHERE id = $2
+        `;
+
+        await client.query(statusUpdateQuery, [new Date().toISOString(), id]);
+      }
+
       await client.query('COMMIT');
-      return updatedExpedition;
+      return this.getById(id);
     } catch (error) {
+      console.error('Erro ao atualizar rejeição no service:', error);
       await client.query('ROLLBACK');
-      console.error('Erro ao atualizar rejeição standalone:', error);
       throw error;
     } finally {
       client.release();
@@ -686,6 +734,6 @@ export class ExpeditionService {
   }
 
   private toSnakeCase(str: string): string {
-    return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+    return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
   }
 } 

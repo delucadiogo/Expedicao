@@ -59,13 +59,11 @@ const PORT = process.env.PORT || 3001;
 
 // Testar conexão com o banco de dados antes de iniciar o servidor
 testConnection().then(() => {
-  if (process.env.NODE_ENV !== 'production') {
-    app.listen(Number(PORT), '0.0.0.0', () => {
-      console.log(`Servidor rodando na porta ${PORT}`);
-      console.log(`Health check disponível em: http://localhost:${PORT}/health`);
-      console.log(`Teste da API disponível em: http://localhost:${PORT}/api/test`);
-    });
-  }
+  app.listen(Number(PORT), '0.0.0.0', () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(`Health check disponível em: http://localhost:${PORT}/health`);
+    console.log(`Teste da API disponível em: http://localhost:${PORT}/api/test`);
+  });
 }).catch(error => {
   console.error('Erro ao iniciar o servidor:', error);
   process.exit(1);

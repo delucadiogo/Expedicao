@@ -12,9 +12,7 @@ export class ExpeditionController {
   // Obter todas as expedições
   getAll = async (req: Request, res: Response) => {
     try {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('Filtros recebidos em getAll no controller:', req.query);
-      }
+      console.log('Filtros recebidos em getAll no controller:', req.query);
       const filters = req.query;
       const expeditions = await this.expeditionService.getAll(filters);
       res.json(expeditions);
@@ -27,9 +25,7 @@ export class ExpeditionController {
   // Obter estatísticas das expedições
   getStats = async (req: Request, res: Response) => {
     try {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('Filtros recebidos em getStats no controller:', req.query);
-      }
+      console.log('Filtros recebidos em getStats no controller:', req.query);
       const stats = await this.expeditionService.getStats(req.query);
       res.json(stats);
     } catch (error) {
@@ -41,9 +37,7 @@ export class ExpeditionController {
   // Obter expedição por ID
   getById = async (req: Request, res: Response) => {
     try {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('Requisição GET /expeditions/:id recebida para ID:', req.params.id);
-      }
+      console.log('Requisição GET /expeditions/:id recebida para ID:', req.params.id);
       const { id } = req.params;
       const expedition = await this.expeditionService.getById(id);
       
@@ -60,9 +54,7 @@ export class ExpeditionController {
   // Criar nova expedição
   create = async (req: Request, res: Response) => {
     try {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('Recebendo requisição para criar expedição:', req.body);
-      }
+      console.log('Recebendo requisição para criar expedição:', req.body);
       const expeditionData: CreateExpeditionDTO = req.body;
       const newExpedition = await this.expeditionService.create(expeditionData);
       res.status(201).json(newExpedition);

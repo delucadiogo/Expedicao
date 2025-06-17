@@ -13,8 +13,6 @@ import { productCatalogService } from '@/lib/api';
 import { ProductCatalog } from '@/types/productCatalog';
 import NewProductDialog from '@/components/product/NewProductDialog';
 import { Plus } from 'lucide-react';
-import { log } from '@/lib/log';
-import { toast } from '@/components/ui/use-toast';
 
 // Helper function to format an ISO string date to 'YYYY-MM-DD' for input type="date"
 const formatIsoToDateInput = (isoString?: string): string => {
@@ -77,13 +75,12 @@ export default function ProductForm({ product, onSubmit, onCancel }: ProductForm
   }, []);
 
   React.useEffect(() => {
-    log.debug('ProductForm useEffect: product prop', product);
-    log.debug('ProductForm useEffect: productCatalog', productCatalog);
-
-    if (product) {
-      const catalogProduct = productCatalog.find(pc => pc.name === product.name);
+    console.log('ProductForm useEffect: product prop', product);
+    console.log('ProductForm useEffect: productCatalog', productCatalog);
+    if (product && productCatalog.length > 0) {
+      const catalogProduct = productCatalog.find(p => p.name === product.name);
+      console.log('ProductForm useEffect: found catalogProduct by name', catalogProduct);
       if (catalogProduct) {
-        log.debug('ProductForm useEffect: found catalogProduct by name', catalogProduct);
         form.reset({
           id: product.id,
           name: catalogProduct.id,
@@ -95,37 +92,20 @@ export default function ProductForm({ product, onSubmit, onCancel }: ProductForm
           status: product.status || 'a_verificar',
           observations: product.observations || '',
         });
-        log.debug('ProductForm useEffect: form.name after reset', form.getValues().name);
+        console.log('ProductForm useEffect: form.name after reset', form.getValues().name);
       } else {
-        log.warn(`Product '${product.name}' from expedition not found in product catalog during useEffect.`);
+        console.warn(`Product '${product.name}' from expedition not found in product catalog during useEffect.`);
       }
-    } else {
-      form.reset({
-        id: '',
-        name: '',
-        code: '',
-        quantity: '',
-        unit: '',
-        batch: '',
-        expiryDate: '',
-        status: 'a_verificar',
-        observations: '',
-      });
     }
   }, [product, productCatalog, form]);
 
   const onFormSubmit = async (values: z.infer<typeof formSchema>) => {
-    log.debug('ProductForm onFormSubmit: values.name (should be ID)', values.name);
-
-    const selectedProductCatalog = productCatalog.find(pc => pc.id === values.name);
-    log.debug('ProductForm onFormSubmit: selectedProductCatalog result', selectedProductCatalog);
+    console.log('ProductForm onFormSubmit: values.name (should be ID)', values.name);
+    const selectedProductCatalog = productCatalog.find(p => p.id === values.name);
+    console.log('ProductForm onFormSubmit: selectedProductCatalog result', selectedProductCatalog);
 
     if (!selectedProductCatalog) {
-      toast({
-        title: "Erro",
-        description: "Produto de catálogo selecionado inválido.",
-        variant: "destructive",
-      });
+      alert('Produto não encontrado no catálogo. Por favor, selecione um produto válido ou cadastre um novo.');
       return;
     }
 

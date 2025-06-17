@@ -7,7 +7,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { log } from '@/lib/log';
 
 const Login = () => {
   const { login, isAuthenticated } = useAuth();
@@ -18,21 +17,21 @@ const Login = () => {
 
   // Redirecionar se já estiver autenticado
   useEffect(() => {
-    log.debug('Login: verificando autenticação...', isAuthenticated);
+    console.log('Login: verificando autenticação...', isAuthenticated);
     if (isAuthenticated) {
-      log.info('Login: usuário já autenticado, redirecionando...');
+      console.log('Login: usuário já autenticado, redirecionando...');
       navigate('/');
     }
   }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    log.debug('Login: tentando fazer login...');
+    console.log('Login: tentando fazer login...');
     setIsLoading(true);
 
     try {
       const success = await login(email, password);
-      log.debug('Login: resultado do login:', success);
+      console.log('Login: resultado do login:', success);
       
       if (success) {
         toast({
@@ -48,7 +47,7 @@ const Login = () => {
         });
       }
     } catch (error) {
-      log.error('Login: erro durante login:', error);
+      console.error('Login: erro durante login:', error);
       toast({
         title: "Erro",
         description: "Ocorreu um erro durante o login.",

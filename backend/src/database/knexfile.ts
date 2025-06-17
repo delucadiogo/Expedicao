@@ -2,6 +2,10 @@ import type { Knex } from "knex";
 import * as dotenv from 'dotenv'; // Reativado o import do dotenv
 dotenv.config({ path: './.env' }); // Reativado a chamada de config com o caminho correto
 
+console.log('DEBUG: CWD do Knexfile:', process.cwd());
+console.log('DEBUG: DB_USER do Knexfile:', process.env.DB_USER);
+console.log('DEBUG: DB_PASSWORD do Knexfile:', process.env.DB_PASSWORD);
+
 const config: { [key: string]: Knex.Config } = {
   development: {
     client: "pg",
@@ -35,11 +39,5 @@ const config: { [key: string]: Knex.Config } = {
     },
   },
 };
-
-if (process.env.NODE_ENV !== 'production') {
-  console.log('DEBUG: CWD do Knexfile:', process.cwd());
-  console.log('DEBUG: DB_USER do Knexfile:', process.env.DB_USER);
-  console.log('DEBUG: DB_PASSWORD do Knexfile:', process.env.DB_PASSWORD);
-}
 
 export default config; 

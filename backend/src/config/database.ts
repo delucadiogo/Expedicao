@@ -13,9 +13,7 @@ const pool = new Pool({
 export const testConnection = async () => {
   try {
     const client = await pool.connect();
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Conexão com o banco de dados estabelecida com sucesso!');
-    }
+    console.log('Conexão com o banco de dados estabelecida com sucesso!');
     client.release();
     return true;
   } catch (error) {

@@ -38,7 +38,6 @@ import { ProductCatalog } from '@/types/productCatalog';
 import { productCatalogService } from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { log } from '@/lib/log';
 
 const EXPEDITION_STATUS_VALUES: ExpeditionStatus[] = ['pendente', 'em_analise', 'aprovado', 'rejeitado', 'retido'];
 
@@ -135,11 +134,11 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
       const data = await driverService.getAll();
       setDrivers(data);
     } catch (error) {
-      log.error("Erro ao carregar motoristas:", error);
+      console.error('Erro ao carregar motoristas:', error);
       toast({
-        title: "Erro",
-        description: "Não foi possível carregar os motoristas.",
-        variant: "destructive",
+        title: 'Erro',
+        description: 'Não foi possível carregar os motoristas.',
+        variant: 'destructive',
       });
     }
   }, [setDrivers, toast]);
@@ -149,11 +148,11 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
       const data = await transportCompanyService.getAll();
       setTransportCompanies(data);
     } catch (error) {
-      log.error('Erro ao carregar empresas de transporte:', error);
+      console.error('Erro ao carregar empresas de transporte:', error);
       toast({
-        title: "Erro",
-        description: "Não foi possível carregar as empresas de transporte.",
-        variant: "destructive",
+        title: 'Erro',
+        description: 'Não foi possível carregar as empresas de transporte.',
+        variant: 'destructive',
       });
     }
   }, [setTransportCompanies, toast]);
@@ -163,11 +162,11 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
       const data = await supplierService.getAll();
       setSuppliers(data);
     } catch (error) {
-      log.error('Erro ao carregar fornecedores:', error);
+      console.error('Erro ao carregar fornecedores:', error);
       toast({
-        title: "Erro",
-        description: "Não foi possível carregar os fornecedores.",
-        variant: "destructive",
+        title: 'Erro',
+        description: 'Não foi possível carregar os fornecedores.',
+        variant: 'destructive',
       });
     }
   }, [setSuppliers, toast]);
@@ -177,27 +176,27 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
       const data = await expeditionResponsibleService.getAll();
       setExpeditionResponsibles(data);
     } catch (error) {
-      log.error('Erro ao carregar responsáveis de expedição:', error);
+      console.error('Erro ao carregar responsáveis de expedição:', error);
       toast({
-        title: "Erro",
-        description: "Não foi possível carregar os responsáveis de expedição.",
-        variant: "destructive",
+        title: 'Erro',
+        description: 'Não foi possível carregar os responsáveis de expedição.',
+        variant: 'destructive',
       });
     }
   }, [setExpeditionResponsibles, toast]);
 
   const fetchTrucks = useCallback(async () => {
     try {
-      log.debug('Tentando carregar caminhões...');
+      console.log('Tentando carregar caminhões...');
       const data = await truckService.getAll();
-      log.debug('Caminhões carregados:', data);
+      console.log('Caminhões carregados:', data);
       setTrucks(data);
     } catch (error) {
-      log.error("Erro ao carregar caminhões:", error);
+      console.error('Erro ao carregar caminhões:', error);
       toast({
-        title: "Erro",
-        description: "Não foi possível carregar caminhões.",
-        variant: "destructive",
+        title: 'Erro',
+        description: 'Não foi possível carregar os caminhões.',
+        variant: 'destructive',
       });
     }
   }, [setTrucks, toast]);
@@ -207,11 +206,11 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
       const data = await qualityResponsibleService.getAll();
       setQualityResponsibles(data);
     } catch (error) {
-      log.error('Erro ao carregar responsáveis de qualidade:', error);
+      console.error('Erro ao carregar responsáveis de qualidade:', error);
       toast({
-        title: "Erro",
-        description: "Não foi possível carregar os responsáveis de qualidade.",
-        variant: "destructive",
+        title: 'Erro',
+        description: 'Não foi possível carregar os responsáveis de qualidade.',
+        variant: 'destructive',
       });
     }
   }, [setQualityResponsibles, toast]);
@@ -221,25 +220,42 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
       const data = await productCatalogService.getAll();
       setProductCatalog(data);
     } catch (error) {
-      log.error('Erro ao carregar catálogo de produtos:', error);
+      console.error('Erro ao carregar catálogo de produtos:', error);
       toast({
-        title: "Erro",
-        description: "Não foi possível carregar o catálogo de produtos.",
-        variant: "destructive",
+        title: 'Erro',
+        description: 'Não foi possível carregar o catálogo de produtos.',
+        variant: 'destructive',
       });
     }
   }, [setProductCatalog, toast]);
 
   useEffect(() => {
-    log.debug('Tentando carregar caminhões...');
-    fetchTrucks();
     fetchDrivers();
+  }, [fetchDrivers]);
+
+  useEffect(() => {
     fetchTransportCompanies();
+  }, [fetchTransportCompanies]);
+
+  useEffect(() => {
     fetchSuppliers();
-    fetchProductCatalog();
+  }, [fetchSuppliers]);
+
+  useEffect(() => {
     fetchExpeditionResponsibles();
+  }, [fetchExpeditionResponsibles]);
+
+  useEffect(() => {
+    fetchTrucks();
+  }, [fetchTrucks]);
+
+  useEffect(() => {
     fetchQualityResponsibles();
-  }, [fetchTrucks, fetchDrivers, fetchTransportCompanies, fetchSuppliers, fetchProductCatalog, fetchExpeditionResponsibles, fetchQualityResponsibles]);
+  }, [fetchQualityResponsibles]);
+
+  useEffect(() => {
+    fetchProductCatalog();
+  }, [fetchProductCatalog]);
 
   const generateExpeditionNumber = useCallback(() => {
     const date = new Date();
@@ -313,7 +329,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
   }, [initialData, drivers, transportCompanies, suppliers, expeditionResponsibles, qualityResponsibles, form]);
 
   const onSubmitForm = async (values: z.infer<typeof formSchema>) => {
-    log.debug('Values on submission:', values);
+    console.log('Values on submission:', values);
 
     const selectedDriver = drivers.find(d => d.id === values.driverName);
     const selectedTransportCompany = transportCompanies.find(tc => tc.id === values.transportCompany);
@@ -345,11 +361,10 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
       observations: values.observations,
     };
 
-    log.debug('dataToSend before service call:', dataToSend);
-    log.debug('Submitting data from ExpeditionForm:', dataToSend);
+    console.log('dataToSend before service call:', dataToSend);
 
     if (initialData) {
-      log.debug('Submitting data from ExpeditionForm:', dataToSend);
+      console.log('Submitting data from ExpeditionForm:', dataToSend);
       try {
         await onSubmit(dataToSend);
         toast({
@@ -361,7 +376,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
         console.error("Erro ao atualizar expedição:", error);
       }
     } else {
-      log.debug('Tentando criar expedição...');
+      console.log('Tentando criar expedição...');
       try {
         const expeditionData: CreateExpeditionDTO = {
           expeditionNumber: dataToSend.expeditionNumber,
@@ -389,7 +404,7 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
           observations: dataToSend.observations,
         };
 
-        log.debug('expeditionData before createExpedition:', expeditionData);
+        console.log('expeditionData before createExpedition:', expeditionData);
 
         await createExpedition(expeditionData);
         form.reset({
