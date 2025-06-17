@@ -23,17 +23,43 @@ async function fetchAPI<T>(
     },
   });
 
+  // Se a resposta NÃO for bem-sucedida (status 4xx ou 5xx)
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Erro na requisição');
+    let errorData = { message: 'Erro desconhecido na requisição' };
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        errorData = await response.json();
+      } catch (jsonError) {
+        console.error('Erro ao parsear JSON de erro:', jsonError);
+        errorData.message = `Erro ao parsear resposta de erro: ${response.status} ${response.statusText}`; // Fallback
+      }
+    } else {
+      errorData.message = `Resposta não-JSON de erro: ${response.status} ${response.statusText}`; // Fallback
+    }
+    throw new Error(errorData.message || 'Erro na requisição');
   }
 
-  // Se a resposta for 204 (No Content), retorna undefined
+  // Se a resposta for 204 (No Content), retorna undefined sem tentar parsear JSON
   if (response.status === 204) {
     return undefined as T;
   }
 
-  return response.json();
+  // Se a resposta for 2xx (sucesso) e tiver conteúdo, tenta parsear JSON
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    try {
+      return response.json();
+    } catch (jsonError) {
+      console.error('Erro ao parsear JSON de sucesso:', jsonError);
+      throw new Error(`Erro ao parsear JSON de sucesso: ${response.status} ${response.statusText}`);
+    }
+  } else {
+    // Se não for JSON, e não for 204, ainda pode ser um sucesso (ex: 200 OK sem corpo)
+    // Nesse caso, retornamos undefined, mas é bom verificar o que a API deveria retornar
+    console.warn(`Resposta de sucesso mas não é JSON ou 204: ${response.status} ${response.statusText}`);
+    return undefined as T;
+  }
 }
 
 // Serviço de Expedição
