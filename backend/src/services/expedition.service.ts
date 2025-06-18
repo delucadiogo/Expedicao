@@ -28,8 +28,6 @@ export class ExpeditionService {
         e.supplier_document AS "supplierDocument",
         e.expedition_responsible AS "expeditionResponsible",
         e.responsible_position AS "responsiblePosition",
-        e.sent_to_supplies AS "sentToSupplies",
-        e.cargo_retained AS "cargoRetained",
         json_agg(
             json_build_object(
                 'id', p.id,
@@ -175,8 +173,6 @@ export class ExpeditionService {
         e.supplier_document AS "supplierDocument",
         e.expedition_responsible AS "expeditionResponsible",
         e.responsible_position AS "responsiblePosition",
-        e.sent_to_supplies AS "sentToSupplies",
-        e.cargo_retained AS "cargoRetained",
         json_agg(
             json_build_object(
                 'id', p.id,
