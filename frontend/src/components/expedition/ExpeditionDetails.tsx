@@ -214,12 +214,7 @@ export default function ExpeditionDetails({ expedition, onPrintRequest }: Expedi
           <CardTitle>Informações de Rejeição</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <p><strong>Enviado para Suprimentos:</strong> {expedition.sentToSupplies ? 'Sim' : 'Não'}</p>
-              <p><strong>Carga Retida:</strong> {expedition.cargoRetained ? 'Sim' : 'Não'}</p>
-            </div>
-          </div>
+          {/* Campos removidos conforme solicitado */}
         </CardContent>
       </Card>
     </div>
