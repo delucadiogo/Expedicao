@@ -114,13 +114,15 @@ export default function ExpeditionDetail() {
   return (
     <>
       <div className="container mx-auto px-4 py-6 space-y-6 print:container print:mx-0 print:px-0 print:py-0">
-        <div className="flex items-center justify-between print:hidden">
-          <h1 className="text-3xl font-bold">Detalhes da Expedição: {expedition.expeditionNumber}</h1>
-          <div className="flex items-center space-x-2">
-            <Button onClick={() => window.print()}>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 print:hidden">
+          <div className="flex-1">
+            <h1 className="text-lg sm:text-3xl font-bold mb-2 sm:mb-0">Detalhes da Expedição: {expedition.expeditionNumber}</h1>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button onClick={() => window.print()} className="w-full sm:w-auto">
               <Printer className="h-4 w-4 mr-2" /> Imprimir
             </Button>
-            <Button variant="outline" onClick={() => navigate('/?tab=list')}>
+            <Button variant="outline" onClick={() => navigate('/?tab=list')} className="w-full sm:w-auto">
               Voltar para Expedições
             </Button>
           </div>
