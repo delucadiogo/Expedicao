@@ -49,15 +49,20 @@ export default function ExpeditionDetails({ expedition, onPrintRequest }: Expedi
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <Button onClick={() => navigate('/?tab=list')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar
-        </Button>
-        <Button onClick={() => onPrintRequest(expedition)}>
-          <Printer className="h-4 w-4 mr-2" />
-          Imprimir
-        </Button>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+        <div className="flex-1">
+          <h1 className="text-lg sm:text-3xl font-bold mb-2 sm:mb-0">Detalhes da Expedição: {expedition.expeditionNumber}</h1>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button onClick={() => onPrintRequest(expedition)} className="w-full sm:w-auto">
+            <Printer className="h-4 w-4 mr-2" />
+            Imprimir
+          </Button>
+          <Button onClick={() => navigate('/?tab=list')} className="w-full sm:w-auto" variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar para Expedições
+          </Button>
+        </div>
       </div>
 
       <Card>
