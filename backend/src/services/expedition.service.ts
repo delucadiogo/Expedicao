@@ -56,8 +56,7 @@ export class ExpeditionService {
             'suppliesResponsible', r.supplies_responsible,
             'retainedQuantity', r.retained_quantity,
             'retentionLocation', r.retention_location,
-            'correctiveActions', r.corrective_actions,
-            'responsible', r.responsible
+            'correctiveActions', r.corrective_actions
         ) AS rejection,
         e.created_at AS "createdAt",
         e.updated_at AS "updatedAt",
@@ -205,8 +204,7 @@ export class ExpeditionService {
             'suppliesResponsible', r.supplies_responsible,
             'retainedQuantity', r.retained_quantity,
             'retentionLocation', r.retention_location,
-            'correctiveActions', r.corrective_actions,
-            'responsible', r.responsible
+            'correctiveActions', r.corrective_actions
         ) AS rejection,
         e.created_at AS "createdAt",
         e.updated_at AS "updatedAt",
