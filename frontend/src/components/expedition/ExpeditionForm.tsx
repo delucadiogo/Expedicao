@@ -496,578 +496,585 @@ export default function ExpeditionForm({ onSuccess, initialData, onSubmit }: Exp
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmitForm)} className="space-y-6">
-      <Card>
-        <CardHeader>
-            <CardTitle>Informações da Expedição</CardTitle>
-        </CardHeader>
-          <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="expeditionNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Número da Expedição</FormLabel>
-                    <FormControl>
-                      <Input {...field} readOnly />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+      <form onSubmit={form.handleSubmit(onSubmitForm)} className="space-y-6 px-2 sm:px-0">
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+                <CardTitle>Informações da Expedição</CardTitle>
+            </CardHeader>
+              <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="expeditionNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Número da Expedição</FormLabel>
+                        <FormControl>
+                          <Input {...field} readOnly />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Informações do Transporte</CardTitle>
+            </CardHeader>
+              <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="truckPlate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Placa do Caminhão</FormLabel>
+                        <div className="flex items-center space-x-2">
+                          <FormControl>
+                            <Combobox
+                              options={trucks.map(truck => ({ label: truck.plate, value: truck.plate }))}
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              placeholder="Selecione ou digite a placa..."
+                              displayField="label"
+                              valueField="value"
+                            />
+                          </FormControl>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            type="button"
+                            onClick={() => setIsNewTruckDialogOpen(true)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="driverName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome do Motorista</FormLabel>
+                        <div className="flex items-center space-x-2">
+                          <FormControl>
+                            <Combobox
+                              options={drivers.map(driver => ({ label: driver.name, value: driver.id }))}
+                              value={field.value}
+                              onValueChange={(id) => {
+                                field.onChange(id);
+                                const selectedDriver = drivers.find(d => d.id === id);
+                                if (selectedDriver) {
+                                  form.setValue('driverDocument', selectedDriver.document);
+                                } else {
+                                  form.setValue('driverDocument', '');
+                                }
+                              }}
+                              placeholder="Selecione ou digite o motorista..."
+                              displayField="label"
+                              valueField="value"
+                            />
+                          </FormControl>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            type="button"
+                            onClick={() => setIsNewDriverDialogOpen(true)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="driverDocument"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Documento do Motorista</FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="transportCompany"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Empresa de Transporte (Opcional)</FormLabel>
+                        <div className="flex items-center space-x-2">
+                          <FormControl>
+                            <Combobox
+                              options={transportCompanies.map(company => ({ label: company.name, value: company.id }))}
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              placeholder="Selecione ou digite a empresa..."
+                              displayField="label"
+                              valueField="value"
+                            />
+                          </FormControl>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            type="button"
+                            onClick={() => setIsNewTransportCompanyDialogOpen(true)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+                <CardTitle>Informações do Fornecedor</CardTitle>
+            </CardHeader>
+              <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="supplierName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome do Fornecedor</FormLabel>
+                        <div className="flex items-center space-x-2">
+                          <FormControl>
+                            <Combobox
+                              options={suppliers.map(supplier => ({ label: supplier.name, value: supplier.id }))}
+                              value={field.value}
+                              onValueChange={(id) => {
+                                field.onChange(id);
+                                const selectedSupplier = suppliers.find(s => s.id === id);
+                                if (selectedSupplier) {
+                                  form.setValue('supplierDocument', selectedSupplier.document);
+                                } else {
+                                  form.setValue('supplierDocument', '');
+                                }
+                              }}
+                              placeholder="Selecione ou digite o fornecedor..."
+                              displayField="label"
+                              valueField="value"
+                            />
+                          </FormControl>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            type="button"
+                            onClick={() => setIsNewSupplierDialogOpen(true)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="supplierDocument"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Documento do Fornecedor</FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+                <CardTitle>Responsável</CardTitle>
+            </CardHeader>
+              <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="expeditionResponsible"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Responsável pela Expedição</FormLabel>
+                        <div className="flex items-center space-x-2">
+                          <FormControl>
+                            <Combobox
+                              options={expeditionResponsibles.map(responsible => ({ label: responsible.name, value: responsible.id }))}
+                              value={field.value}
+                              onValueChange={(id) => {
+                                field.onChange(id);
+                                const selectedResponsible = expeditionResponsibles.find(r => r.id === id);
+                                if (selectedResponsible) {
+                                  form.setValue('responsiblePosition', selectedResponsible.position);
+                                } else {
+                                  form.setValue('responsiblePosition', '');
+                                }
+                              }}
+                              placeholder="Selecione ou digite o responsável..."
+                              displayField="label"
+                              valueField="value"
+                            />
+                          </FormControl>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            type="button"
+                            onClick={() => setIsNewExpeditionResponsibleDialogOpen(true)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="responsiblePosition"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cargo/Setor</FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+                <CardTitle>Produtos da Expedição</CardTitle>
+            </CardHeader>
+              <CardContent>
+              <div className="flex flex-col sm:flex-row gap-2 mb-4">
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => setIsProductDialogOpen(true)}
+                  className="w-full sm:w-auto"
+                >
+                  <Plus className="mr-2 h-4 w-4" /> Adicionar Produto na Expedição
+                </Button>
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => setIsNewProductDialogOpen(true)}
+                  className="w-full sm:w-auto"
+                >
+                  <Plus className="mr-2 h-4 w-4" /> Cadastrar Novo Produto (Catálogo)
+                </Button>
+              </div>
+              <ProductList
+                products={products}
+                onEdit={handleEditProduct}
+                onDelete={handleDeleteProduct}
               />
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Informações do Transporte</CardTitle>
-        </CardHeader>
-          <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="truckPlate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Placa do Caminhão</FormLabel>
-                    <div className="flex items-center space-x-2">
-                      <FormControl>
-                        <Combobox
-                          options={trucks.map(truck => ({ label: truck.plate, value: truck.plate }))}
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          placeholder="Selecione ou digite a placa..."
-                          displayField="label"
-                          valueField="value"
-                        />
-                      </FormControl>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        type="button"
-                        onClick={() => setIsNewTruckDialogOpen(true)}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
+
+              {form.formState.errors.products && (
+                <FormMessage>{form.formState.errors.products.message}</FormMessage>
+              )}
+
+              <ProductDialog
+                  isOpen={isProductDialogOpen}
+                  onClose={(open) => {
+                    setIsProductDialogOpen(open);
+                    if (!open) {
+                      setProductToEdit(undefined);
+                    }
+                  }}
+                  onSubmit={handleAddProduct}
+                  product={productToEdit}
               />
 
-              <FormField
-                control={form.control}
-                name="driverName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome do Motorista</FormLabel>
-                    <div className="flex items-center space-x-2">
-                      <FormControl>
-                        <Combobox
-                          options={drivers.map(driver => ({ label: driver.name, value: driver.id }))}
-                          value={field.value}
-                          onValueChange={(id) => {
-                            field.onChange(id);
-                            const selectedDriver = drivers.find(d => d.id === id);
-                            if (selectedDriver) {
-                              form.setValue('driverDocument', selectedDriver.document);
-                            } else {
-                              form.setValue('driverDocument', '');
-                            }
-                          }}
-                          placeholder="Selecione ou digite o motorista..."
-                          displayField="label"
-                          valueField="value"
-                        />
-                      </FormControl>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        type="button"
-                        onClick={() => setIsNewDriverDialogOpen(true)}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            </CardContent>
+          </Card>
 
-              <FormField
-                control={form.control}
-                name="driverDocument"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Documento do Motorista</FormLabel>
-                    <FormControl>
-                      <Input {...field} disabled />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <Card>
+            <CardHeader>
+                <CardTitle>Controle de Qualidade</CardTitle>
+            </CardHeader>
+              <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="qualityControl.responsibleName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Responsável pela Qualidade</FormLabel>
+                        <div className="flex items-center space-x-2">
+                          <FormControl>
+                            <Combobox
+                              options={qualityResponsibles.map(r => ({ label: r.name, value: r.name }))}
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              placeholder="Selecione ou digite o responsável..."
+                              displayField="label"
+                              valueField="value"
+                            />
+                          </FormControl>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            type="button"
+                            onClick={() => setIsNewQualityResponsibleDialogOpen(true)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="transportCompany"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Empresa de Transporte (Opcional)</FormLabel>
-                    <div className="flex items-center space-x-2">
-                      <FormControl>
-                        <Combobox
-                          options={transportCompanies.map(company => ({ label: company.name, value: company.id }))}
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          placeholder="Selecione ou digite a empresa..."
-                          displayField="label"
-                          valueField="value"
-                        />
-                      </FormControl>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        type="button"
-                        onClick={() => setIsNewTransportCompanyDialogOpen(true)}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-          </div>
-        </CardContent>
-      </Card>
+                  <FormField
+                    control={form.control}
+                    name="qualityControl.approvalStatus"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status de Aprovação</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="aprovado">Aprovado</SelectItem>
+                            <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                            <SelectItem value="pendente">Pendente</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-      <Card>
-        <CardHeader>
-            <CardTitle>Informações do Fornecedor</CardTitle>
-        </CardHeader>
-          <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="supplierName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome do Fornecedor</FormLabel>
-                    <div className="flex items-center space-x-2">
-                      <FormControl>
-                        <Combobox
-                          options={suppliers.map(supplier => ({ label: supplier.name, value: supplier.id }))}
-                          value={field.value}
-                          onValueChange={(id) => {
-                            field.onChange(id);
-                            const selectedSupplier = suppliers.find(s => s.id === id);
-                            if (selectedSupplier) {
-                              form.setValue('supplierDocument', selectedSupplier.document);
-                            } else {
-                              form.setValue('supplierDocument', '');
-                            }
-                          }}
-                          placeholder="Selecione ou digite o fornecedor..."
-                          displayField="label"
-                          valueField="value"
-                        />
-                      </FormControl>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        type="button"
-                        onClick={() => setIsNewSupplierDialogOpen(true)}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="qualityControl.justification"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>Justificativa (se rejeitado)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Descreva a justificativa para a rejeição..."
+                            {...field}
+                            value={field.value || ''}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="supplierDocument"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Documento do Fornecedor</FormLabel>
-                    <FormControl>
-                      <Input {...field} disabled />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-          </div>
-        </CardContent>
-      </Card>
+                  <FormField
+                    control={form.control}
+                    name="qualityControl.observations"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>Observações do Controle de Qualidade</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Adicione qualquer informação adicional..."
+                            {...field}
+                            value={field.value || ''}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-      <Card>
-        <CardHeader>
-            <CardTitle>Responsável</CardTitle>
-        </CardHeader>
-          <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="expeditionResponsible"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Responsável pela Expedição</FormLabel>
-                    <div className="flex items-center space-x-2">
-                      <FormControl>
-                        <Combobox
-                          options={expeditionResponsibles.map(responsible => ({ label: responsible.name, value: responsible.id }))}
-                          value={field.value}
-                          onValueChange={(id) => {
-                            field.onChange(id);
-                            const selectedResponsible = expeditionResponsibles.find(r => r.id === id);
-                            if (selectedResponsible) {
-                              form.setValue('responsiblePosition', selectedResponsible.position);
-                            } else {
-                              form.setValue('responsiblePosition', '');
-                            }
-                          }}
-                          placeholder="Selecione ou digite o responsável..."
-                          displayField="label"
-                          valueField="value"
-                        />
-                      </FormControl>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        type="button"
-                        onClick={() => setIsNewExpeditionResponsibleDialogOpen(true)}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <Card>
+              <CardHeader>
+                <CardTitle>Status da Expedição</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status da Expedição</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {EXPEDITION_STATUS_VALUES.map((status) => (
+                              <SelectItem key={status} value={status}>
+                                {status.replace(/_/g, ' ').replace(/(?:^|\s)\S/g, (a) => a.toUpperCase())}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="dateTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Data/Hora de Expedição</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="datetime-local"
+                            {...field}
+                            className="w-full"
+                            value={field.value}
+                            onChange={(e) => field.onChange(e.target.value)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                   <FormField
+                    control={form.control}
+                    name="arrivalDateTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Data/Hora de Chegada do Caminhão (Opcional)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="datetime-local"
+                            {...field}
+                            className="w-full"
+                            value={field.value || ''}
+                            onChange={(e) => field.onChange(e.target.value || null)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="observations"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>Observações (Opcional)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Adicione quaisquer observações..."
+                            {...field}
+                            className="w-full"
+                            value={field.value || ''}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-              <FormField
-                control={form.control}
-                name="responsiblePosition"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cargo/Setor</FormLabel>
-                    <FormControl>
-                      <Input {...field} disabled />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-            <CardTitle>Produtos da Expedição</CardTitle>
-        </CardHeader>
-          <CardContent>
-          <Button
-            variant="outline"
-            type="button"
-            onClick={() => setIsProductDialogOpen(true)}
-            className="mb-4"
-          >
-            <Plus className="mr-2 h-4 w-4" /> Adicionar Produto na Expedição
-          </Button>
-          <Button
-            variant="outline"
-            type="button"
-            onClick={() => setIsNewProductDialogOpen(true)}
-            className="mb-4 ml-2"
-          >
-            <Plus className="mr-2 h-4 w-4" /> Cadastrar Novo Produto (Catálogo)
-          </Button>
-          <ProductList
-            products={products}
-            onEdit={handleEditProduct}
-            onDelete={handleDeleteProduct}
-          />
-
-          {form.formState.errors.products && (
-            <FormMessage>{form.formState.errors.products.message}</FormMessage>
-          )}
-
-          <ProductDialog
-              isOpen={isProductDialogOpen}
-              onClose={(open) => {
-                setIsProductDialogOpen(open);
-                if (!open) {
-                  setProductToEdit(undefined);
-                }
+            <NewTruckDialog
+              isOpen={isNewTruckDialogOpen}
+              onClose={() => setIsNewTruckDialogOpen(false)}
+              onSuccess={(createdTruck) => {
+                console.log('Caminhão criado com sucesso no diálogo, recebido em ExpeditionForm:', createdTruck);
+                setIsNewTruckDialogOpen(false);
+                fetchTrucks();
+                toast({
+                  title: 'Sucesso',
+                  description: 'Caminhão cadastrado com sucesso e lista atualizada.',
+                  variant: 'success',
+                });
               }}
-              onSubmit={handleAddProduct}
-              product={productToEdit}
-          />
+            />
 
-        </CardContent>
-      </Card>
+            <NewDriverDialog
+              isOpen={isNewDriverDialogOpen}
+              onClose={() => setIsNewDriverDialogOpen(false)}
+              onSuccess={() => {
+                setIsNewDriverDialogOpen(false);
+                fetchDrivers();
+              }}
+            />
 
-      <Card>
-        <CardHeader>
-            <CardTitle>Controle de Qualidade</CardTitle>
-        </CardHeader>
-          <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="qualityControl.responsibleName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Responsável pela Qualidade</FormLabel>
-                    <div className="flex items-center space-x-2">
-                      <FormControl>
-                        <Combobox
-                          options={qualityResponsibles.map(r => ({ label: r.name, value: r.name }))}
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          placeholder="Selecione ou digite o responsável..."
-                          displayField="label"
-                          valueField="value"
-                        />
-                      </FormControl>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        type="button"
-                        onClick={() => setIsNewQualityResponsibleDialogOpen(true)}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <NewTransportCompanyDialog
+              isOpen={isNewTransportCompanyDialogOpen}
+              onClose={() => setIsNewTransportCompanyDialogOpen(false)}
+              onSuccess={() => {
+                setIsNewTransportCompanyDialogOpen(false);
+                fetchTransportCompanies();
+              }}
+            />
 
-              <FormField
-                control={form.control}
-                name="qualityControl.approvalStatus"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status de Aprovação</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="aprovado">Aprovado</SelectItem>
-                        <SelectItem value="rejeitado">Rejeitado</SelectItem>
-                        <SelectItem value="pendente">Pendente</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <NewSupplierDialog
+              isOpen={isNewSupplierDialogOpen}
+              onClose={() => setIsNewSupplierDialogOpen(false)}
+              onSuccess={() => {
+                setIsNewSupplierDialogOpen(false);
+                fetchSuppliers();
+              }}
+            />
 
-              <FormField
-                control={form.control}
-                name="qualityControl.justification"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Justificativa (se rejeitado)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Descreva a justificativa para a rejeição..."
-                        {...field}
-                        value={field.value || ''}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <NewExpeditionResponsibleDialog
+              isOpen={isNewExpeditionResponsibleDialogOpen}
+              onClose={() => setIsNewExpeditionResponsibleDialogOpen(false)}
+              onSuccess={() => {
+                setIsNewExpeditionResponsibleDialogOpen(false);
+                fetchExpeditionResponsibles();
+              }}
+            />
 
-              <FormField
-                control={form.control}
-                name="qualityControl.observations"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Observações do Controle de Qualidade</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Adicione qualquer informação adicional..."
-                        {...field}
-                        value={field.value || ''}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </CardContent>
-        </Card>
+            <NewQualityResponsibleDialog
+              isOpen={isNewQualityResponsibleDialogOpen}
+              onClose={() => setIsNewQualityResponsibleDialogOpen(false)}
+              onSuccess={() => {
+                setIsNewQualityResponsibleDialogOpen(false);
+                fetchQualityResponsibles();
+              }}
+            />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Status da Expedição</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status da Expedição</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {EXPEDITION_STATUS_VALUES.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status.replace(/_/g, ' ').replace(/(?:^|\s)\S/g, (a) => a.toUpperCase())}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="dateTime"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Data/Hora de Expedição</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="datetime-local"
-                        {...field}
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.value)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="arrivalDateTime"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Data/Hora de Chegada do Caminhão (Opcional)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="datetime-local"
-                        {...field}
-                        value={field.value || ''}
-                        onChange={(e) => field.onChange(e.target.value || null)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="observations"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Observações (Opcional)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Adicione quaisquer observações..."
-                        {...field}
-                        value={field.value || ''}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </CardContent>
-        </Card>
+            <NewProductDialog
+              isOpen={isNewProductDialogOpen}
+              onClose={() => setIsNewProductDialogOpen(false)}
+              onSuccess={() => {
+                setIsNewProductDialogOpen(false);
+                fetchProductCatalog();
+              }}
+            />
 
-        <NewTruckDialog
-          isOpen={isNewTruckDialogOpen}
-          onClose={() => setIsNewTruckDialogOpen(false)}
-          onSuccess={(createdTruck) => {
-            console.log('Caminhão criado com sucesso no diálogo, recebido em ExpeditionForm:', createdTruck);
-            setIsNewTruckDialogOpen(false);
-            fetchTrucks();
-            toast({
-              title: 'Sucesso',
-              description: 'Caminhão cadastrado com sucesso e lista atualizada.',
-              variant: 'success',
-            });
-          }}
-        />
-
-        <NewDriverDialog
-          isOpen={isNewDriverDialogOpen}
-          onClose={() => setIsNewDriverDialogOpen(false)}
-          onSuccess={() => {
-            setIsNewDriverDialogOpen(false);
-            fetchDrivers();
-          }}
-        />
-
-        <NewTransportCompanyDialog
-          isOpen={isNewTransportCompanyDialogOpen}
-          onClose={() => setIsNewTransportCompanyDialogOpen(false)}
-          onSuccess={() => {
-            setIsNewTransportCompanyDialogOpen(false);
-            fetchTransportCompanies();
-          }}
-        />
-
-        <NewSupplierDialog
-          isOpen={isNewSupplierDialogOpen}
-          onClose={() => setIsNewSupplierDialogOpen(false)}
-          onSuccess={() => {
-            setIsNewSupplierDialogOpen(false);
-            fetchSuppliers();
-          }}
-        />
-
-        <NewExpeditionResponsibleDialog
-          isOpen={isNewExpeditionResponsibleDialogOpen}
-          onClose={() => setIsNewExpeditionResponsibleDialogOpen(false)}
-          onSuccess={() => {
-            setIsNewExpeditionResponsibleDialogOpen(false);
-            fetchExpeditionResponsibles();
-          }}
-        />
-
-        <NewQualityResponsibleDialog
-          isOpen={isNewQualityResponsibleDialogOpen}
-          onClose={() => setIsNewQualityResponsibleDialogOpen(false)}
-          onSuccess={() => {
-            setIsNewQualityResponsibleDialogOpen(false);
-            fetchQualityResponsibles();
-          }}
-        />
-
-        <NewProductDialog
-          isOpen={isNewProductDialogOpen}
-          onClose={() => setIsNewProductDialogOpen(false)}
-          onSuccess={() => {
-            setIsNewProductDialogOpen(false);
-            fetchProductCatalog();
-          }}
-        />
-
+        </div>
         <Button type="submit" className="w-full">Salvar Expedição</Button>
       </form>
     </Form>
