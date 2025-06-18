@@ -11,14 +11,17 @@ import { QualityResponsible, CreateQualityResponsibleDTO, UpdateQualityResponsib
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Função auxiliar para fazer requisições
+// Inclui automaticamente o token JWT salvo no localStorage, se existir
 async function fetchAPI<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
+  const token = localStorage.getItem('token');
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       ...options.headers,
     },
   });
