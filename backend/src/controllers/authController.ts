@@ -5,7 +5,10 @@ import { v4 as uuidv4 } from 'uuid';
 import knex from '../database/knex';
 import { RegisterRequest, LoginRequest, AuthUser } from '../types/auth';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret'; // USE ENVIRONMENT VARIABLE IN PRODUCTION!
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET não está definido nas variáveis de ambiente. Configure antes de iniciar o backend.');
+}
 const ALLOWED_EMAIL_DOMAINS = process.env.ALLOWED_EMAIL_DOMAINS ? process.env.ALLOWED_EMAIL_DOMAINS.split(',').map(d => d.trim()) : [];
 
 export const register = async (req: Request, res: Response) => {
