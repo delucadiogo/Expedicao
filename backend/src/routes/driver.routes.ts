@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { DriverController } from '../controllers/driver.controller';
 import { z } from 'zod';
+import { authenticate } from '../middlewares/authMiddleware';
 
 const router = Router();
 const driverController = new DriverController();
@@ -33,10 +34,10 @@ function validate(schema: z.ZodSchema) {
 }
 
 // Rotas para motoristas
-router.get('/drivers', driverController.getAll);
-router.get('/drivers/:id', driverController.getById);
-router.post('/drivers', validate(createDriverSchema), driverController.create);
-router.put('/drivers/:id', validate(updateDriverSchema), driverController.update);
-router.delete('/drivers/:id', driverController.delete);
+router.get('/drivers', authenticate, driverController.getAll);
+router.get('/drivers/:id', authenticate, driverController.getById);
+router.post('/drivers', authenticate, validate(createDriverSchema), driverController.create);
+router.put('/drivers/:id', authenticate, validate(updateDriverSchema), driverController.update);
+router.delete('/drivers/:id', authenticate, driverController.delete);
 
 export default router; 

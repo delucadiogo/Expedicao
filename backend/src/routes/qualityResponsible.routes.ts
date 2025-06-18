@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { QualityResponsibleController } from '../controllers/qualityResponsible.controller';
 import { z } from 'zod';
 import { Request, Response, NextFunction } from 'express';
+import { authenticate } from '../middlewares/authMiddleware';
 
 const router = Router();
 const qualityResponsibleController = new QualityResponsibleController();
@@ -27,10 +28,10 @@ function validate(schema: z.ZodSchema) {
 }
 
 // Rotas para responsáveis pela qualidade
-router.get('/', qualityResponsibleController.getAll);
-router.get('/:id', qualityResponsibleController.getById);
-router.post('/', validate(createQualityResponsibleSchema), qualityResponsibleController.create);
-router.put('/:id', validate(updateQualityResponsibleSchema), qualityResponsibleController.update);
-router.delete('/:id', qualityResponsibleController.delete);
+router.get('/', authenticate, qualityResponsibleController.getAll);
+router.get('/:id', authenticate, qualityResponsibleController.getById);
+router.post('/', authenticate, validate(createQualityResponsibleSchema), qualityResponsibleController.create);
+router.put('/:id', authenticate, validate(updateQualityResponsibleSchema), qualityResponsibleController.update);
+router.delete('/:id', authenticate, qualityResponsibleController.delete);
 
 export default router; 

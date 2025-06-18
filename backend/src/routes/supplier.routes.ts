@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { SupplierController } from '../controllers/supplier.controller';
 import { z } from 'zod';
 import { Request, Response, NextFunction } from 'express';
+import { authenticate } from '../middlewares/authMiddleware';
 
 const router = Router();
 const supplierController = new SupplierController();
@@ -29,10 +30,10 @@ function validate(schema: z.ZodSchema) {
 }
 
 // Rotas para fornecedores
-router.get('/', supplierController.getAll);
-router.get('/:id', supplierController.getById);
-router.post('/', validate(createSupplierSchema), supplierController.create);
-router.put('/:id', validate(updateSupplierSchema), supplierController.update);
-router.delete('/:id', supplierController.delete);
+router.get('/', authenticate, supplierController.getAll);
+router.get('/:id', authenticate, supplierController.getById);
+router.post('/', authenticate, validate(createSupplierSchema), supplierController.create);
+router.put('/:id', authenticate, validate(updateSupplierSchema), supplierController.update);
+router.delete('/:id', authenticate, supplierController.delete);
 
 export default router; 

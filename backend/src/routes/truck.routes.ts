@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { TruckController } from '../controllers/truck.controller';
 import { z } from 'zod';
 import { Request, Response, NextFunction } from 'express';
+import { authenticate } from '../middlewares/authMiddleware';
 
 const router = Router();
 const truckController = new TruckController();
@@ -27,10 +28,10 @@ function validate(schema: z.ZodSchema) {
 }
 
 // Rotas para caminhões
-router.get('/trucks', truckController.getAll);
-router.get('/trucks/:id', truckController.getById);
-router.post('/trucks', validate(createTruckSchema), truckController.create);
-router.put('/trucks/:id', validate(updateTruckSchema), truckController.update);
-router.delete('/trucks/:id', truckController.delete);
+router.get('/trucks', authenticate, truckController.getAll);
+router.get('/trucks/:id', authenticate, truckController.getById);
+router.post('/trucks', authenticate, validate(createTruckSchema), truckController.create);
+router.put('/trucks/:id', authenticate, validate(updateTruckSchema), truckController.update);
+router.delete('/trucks/:id', authenticate, truckController.delete);
 
 export default router; 

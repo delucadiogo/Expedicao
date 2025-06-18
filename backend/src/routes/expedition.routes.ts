@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { ExpeditionController } from '../controllers/expedition.controller';
 import { z } from 'zod';
 import { Request, Response, NextFunction } from 'express';
+import { authenticate } from '../middlewares/authMiddleware';
 
 const router = Router();
 const expeditionController = new ExpeditionController();
@@ -77,17 +78,17 @@ function validate(schema: z.ZodSchema) {
 }
 
 // Rotas para expedições
-router.get('/expeditions', expeditionController.getAll);
-router.get('/expeditions/stats', expeditionController.getStats);
-router.get('/expeditions/:id', expeditionController.getById);
-router.post('/expeditions', validate(createExpeditionSchema), expeditionController.create);
-router.put('/expeditions/:id', validate(updateExpeditionSchema), expeditionController.update);
-router.delete('/expeditions/:id', expeditionController.delete);
+router.get('/expeditions', authenticate, expeditionController.getAll);
+router.get('/expeditions/stats', authenticate, expeditionController.getStats);
+router.get('/expeditions/:id', authenticate, expeditionController.getById);
+router.post('/expeditions', authenticate, validate(createExpeditionSchema), expeditionController.create);
+router.put('/expeditions/:id', authenticate, validate(updateExpeditionSchema), expeditionController.update);
+router.delete('/expeditions/:id', authenticate, expeditionController.delete);
 
 // Rotas para controle de qualidade
-router.put('/expeditions/:id/quality-control', validate(qualityControlSchema), expeditionController.updateQualityControl);
+router.put('/expeditions/:id/quality-control', authenticate, validate(qualityControlSchema), expeditionController.updateQualityControl);
 
 // Rotas para rejeição
-router.put('/expeditions/:id/rejection', validate(rejectionSchema), expeditionController.updateRejection);
+router.put('/expeditions/:id/rejection', authenticate, validate(rejectionSchema), expeditionController.updateRejection);
 
 export default router; 

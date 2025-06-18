@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { ProductCatalogController } from '../controllers/productCatalog.controller';
 import { z } from 'zod';
 import { Request, Response, NextFunction } from 'express';
+import { authenticate } from '../middlewares/authMiddleware';
 
 const router = Router();
 const productCatalogController = new ProductCatalogController();
@@ -26,10 +27,10 @@ function validate(schema: z.ZodSchema) {
 }
 
 // Rotas para o catálogo de produtos
-router.get('/product-catalog', productCatalogController.getAll);
-router.get('/product-catalog/:id', productCatalogController.getById);
-router.post('/product-catalog', validate(createProductCatalogSchema), productCatalogController.create);
-router.put('/product-catalog/:id', validate(updateProductCatalogSchema), productCatalogController.update);
-router.delete('/product-catalog/:id', productCatalogController.delete);
+router.get('/product-catalog', authenticate, productCatalogController.getAll);
+router.get('/product-catalog/:id', authenticate, productCatalogController.getById);
+router.post('/product-catalog', authenticate, validate(createProductCatalogSchema), productCatalogController.create);
+router.put('/product-catalog/:id', authenticate, validate(updateProductCatalogSchema), productCatalogController.update);
+router.delete('/product-catalog/:id', authenticate, productCatalogController.delete);
 
 export default router;

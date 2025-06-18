@@ -2,13 +2,14 @@ import { Router } from 'express';
 import { ExpeditionResponsibleController } from '../controllers/expeditionResponsible.controller';
 import { z } from 'zod';
 import { Request, Response, NextFunction } from 'express';
+import { authenticate } from '../middlewares/authMiddleware';
 
 const router = Router();
 const expeditionResponsibleController = new ExpeditionResponsibleController();
 
 // Rotas para responsáveis de expedição
-router.get('/', expeditionResponsibleController.getAll);
-router.get('/:id', expeditionResponsibleController.getById);
+router.get('/', authenticate, expeditionResponsibleController.getAll);
+router.get('/:id', authenticate, expeditionResponsibleController.getById);
 
 const createExpeditionResponsibleSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
@@ -29,8 +30,8 @@ function validate(schema: z.ZodSchema) {
   };
 }
 
-router.post('/', validate(createExpeditionResponsibleSchema), expeditionResponsibleController.create);
-router.put('/:id', validate(updateExpeditionResponsibleSchema), expeditionResponsibleController.update);
-router.delete('/:id', expeditionResponsibleController.delete);
+router.post('/', authenticate, validate(createExpeditionResponsibleSchema), expeditionResponsibleController.create);
+router.put('/:id', authenticate, validate(updateExpeditionResponsibleSchema), expeditionResponsibleController.update);
+router.delete('/:id', authenticate, expeditionResponsibleController.delete);
 
 export default router; 

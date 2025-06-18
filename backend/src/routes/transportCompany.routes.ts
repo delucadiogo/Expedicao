@@ -2,13 +2,14 @@ import { Router } from 'express';
 import { TransportCompanyController } from '../controllers/transportCompany.controller';
 import { z } from 'zod';
 import { Request, Response, NextFunction } from 'express';
+import { authenticate } from '../middlewares/authMiddleware';
 
 const router = Router();
 const transportCompanyController = new TransportCompanyController();
 
 // Rotas para empresas de transporte
-router.get('/transport-companies', transportCompanyController.getAll);
-router.get('/transport-companies/:id', transportCompanyController.getById);
+router.get('/transport-companies', authenticate, transportCompanyController.getAll);
+router.get('/transport-companies/:id', authenticate, transportCompanyController.getById);
 
 const createTransportCompanySchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
@@ -32,8 +33,8 @@ function validate(schema: z.ZodSchema) {
   };
 }
 
-router.post('/transport-companies', validate(createTransportCompanySchema), transportCompanyController.create);
-router.put('/transport-companies/:id', validate(updateTransportCompanySchema), transportCompanyController.update);
-router.delete('/transport-companies/:id', transportCompanyController.delete);
+router.post('/transport-companies', authenticate, validate(createTransportCompanySchema), transportCompanyController.create);
+router.put('/transport-companies/:id', authenticate, validate(updateTransportCompanySchema), transportCompanyController.update);
+router.delete('/transport-companies/:id', authenticate, transportCompanyController.delete);
 
 export default router; 
