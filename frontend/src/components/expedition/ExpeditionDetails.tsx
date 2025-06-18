@@ -209,41 +209,19 @@ export default function ExpeditionDetails({ expedition, onPrintRequest }: Expedi
         </CardContent>
       </Card>
 
-      {expedition.rejection && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Detalhes da Rejeição</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <p>Motivo: {expedition.rejection.reason}</p>
-                <p>Responsável: {expedition.rejection.responsible}</p>
-                <p>Enviado para Suprimentos: {expedition.rejection.sentToSupplies ? 'Sim' : 'Não'}</p>
-                <p>Carga Retida: {expedition.rejection.cargoRetained ? 'Sim' : 'Não'}</p>
-              </div>
-              {expedition.rejection.retentionLocation && (
-                <div>
-                  <p className="font-medium">Local de Retenção:</p>
-                  <p>{expedition.rejection.retentionLocation}</p>
-                </div>
-              )}
-              {expedition.rejection.retainedQuantity && (
-                <div>
-                  <p className="font-medium">Quantidade Retida:</p>
-                  <p>{expedition.rejection.retainedQuantity}</p>
-                </div>
-              )}
-              {expedition.rejection.correctiveActions && (
-                <div>
-                  <p className="font-medium">Ações Corretivas:</p>
-                  <p>{expedition.rejection.correctiveActions}</p>
-                </div>
-              )}
+      <Card>
+        <CardHeader>
+          <CardTitle>Informações de Rejeição</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <p>Enviado para Suprimentos: {expedition.sentToSupplies ? 'Sim' : 'Não'}</p>
+              <p>Carga Retida: {expedition.cargoRetained ? 'Sim' : 'Não'}</p>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

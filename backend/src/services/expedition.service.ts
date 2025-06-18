@@ -28,6 +28,8 @@ export class ExpeditionService {
         e.supplier_document AS "supplierDocument",
         e.expedition_responsible AS "expeditionResponsible",
         e.responsible_position AS "responsiblePosition",
+        e.sent_to_supplies AS "sentToSupplies",
+        e.cargo_retained AS "cargoRetained",
         json_agg(
             json_build_object(
                 'id', p.id,
@@ -50,13 +52,12 @@ export class ExpeditionService {
         ) AS "qualityControl",
         json_build_object(
             'reason', r.reason,
-            'sentToSupplies', r.sent_to_supplies,
             'suppliesDateTime', r.supplies_date_time,
             'suppliesResponsible', r.supplies_responsible,
-            'cargoRetained', r.cargo_retained,
             'retainedQuantity', r.retained_quantity,
             'retentionLocation', r.retention_location,
-            'correctiveActions', r.corrective_actions
+            'correctiveActions', r.corrective_actions,
+            'responsible', r.responsible
         ) AS rejection,
         e.created_at AS "createdAt",
         e.updated_at AS "updatedAt",
@@ -175,6 +176,8 @@ export class ExpeditionService {
         e.supplier_document AS "supplierDocument",
         e.expedition_responsible AS "expeditionResponsible",
         e.responsible_position AS "responsiblePosition",
+        e.sent_to_supplies AS "sentToSupplies",
+        e.cargo_retained AS "cargoRetained",
         json_agg(
             json_build_object(
                 'id', p.id,
@@ -198,13 +201,12 @@ export class ExpeditionService {
         ) AS "qualityControl",
         json_build_object(
             'reason', r.reason,
-            'sentToSupplies', r.sent_to_supplies,
             'suppliesDateTime', r.supplies_date_time,
             'suppliesResponsible', r.supplies_responsible,
-            'cargoRetained', r.cargo_retained,
             'retainedQuantity', r.retained_quantity,
             'retentionLocation', r.retention_location,
-            'correctiveActions', r.corrective_actions
+            'correctiveActions', r.corrective_actions,
+            'responsible', r.responsible
         ) AS rejection,
         e.created_at AS "createdAt",
         e.updated_at AS "updatedAt",

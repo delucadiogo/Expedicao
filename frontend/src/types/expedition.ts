@@ -55,6 +55,8 @@ export interface Expedition {
   updatedBy: string;
   arrivalDateTime?: string;
   observations?: string;
+  sentToSupplies: boolean;
+  cargoRetained: boolean;
 }
 
 export interface ExpeditionStats {
