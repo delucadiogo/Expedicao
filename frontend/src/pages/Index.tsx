@@ -55,31 +55,31 @@ const Index = () => {
     <ExpeditionProvider>
       <div className="min-h-screen bg-background">
         <header className="border-b bg-card">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
+          <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
+            <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-2 sm:gap-0">
+              <div className="flex flex-col sm:flex-row items-center sm:space-x-3 w-full sm:w-auto">
                 <img 
                   src="https://www.oliveira.com.br/wp-content/uploads/2023/09/logo_oliveira_ver_01.png" 
                   alt="Oliveira Logo" 
-                  className="h-10" 
+                  className="h-8 sm:h-10 mb-2 sm:mb-0" 
                 />
-                <div>
-                  <h1 className="text-2xl font-bold">Sistema de Controle de Expedição</h1>
-                  <p className="text-sm text-muted-foreground">
+                <div className="text-center sm:text-left">
+                  <h1 className="text-lg sm:text-2xl font-bold leading-tight">Sistema de Controle de Expedição</h1>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-tight">
                     Gestão completa de expedições, qualidade e controle de produtos
                   </p>
                 </div>
               </div>
-              <div className="flex items-center space-x-4">
-                <Button variant="outline" size="sm" onClick={() => navigate('/cadastros')}>
+              <div className="flex flex-col sm:flex-row items-center gap-2 sm:space-x-4 w-full sm:w-auto mt-2 sm:mt-0">
+                <Button variant="outline" size="sm" onClick={() => navigate('/cadastros')} className="w-full sm:w-auto">
                   <Settings className="h-4 w-4 mr-2" />
                   Cadastros
                 </Button>
-                <div className="text-right">
-                  <p className="font-medium">{user?.name}</p>
-                  <p className="text-sm text-muted-foreground capitalize">{user?.role}</p>
+                <div className="text-center sm:text-right w-full sm:w-auto">
+                  <p className="font-medium text-sm sm:text-base">{user?.name}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground capitalize">{user?.role}</p>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleLogout}>
+                <Button variant="outline" size="sm" onClick={handleLogout} className="w-full sm:w-auto">
                   <LogOut className="h-4 w-4 mr-2" />
                   Sair
                 </Button>
