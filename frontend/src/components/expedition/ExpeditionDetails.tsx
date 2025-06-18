@@ -216,8 +216,8 @@ export default function ExpeditionDetails({ expedition, onPrintRequest }: Expedi
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <p><strong>Enviado para Suprimentos:</strong> {expedition.sentToSupplies === true || expedition.sentToSupplies === 'true' ? 'Sim' : 'Não'}</p>
-              <p><strong>Carga Retida:</strong> {expedition.cargoRetained === true || expedition.cargoRetained === 'true' ? 'Sim' : 'Não'}</p>
+              <p><strong>Enviado para Suprimentos:</strong> {expedition.sentToSupplies ? 'Sim' : 'Não'}</p>
+              <p><strong>Carga Retida:</strong> {expedition.cargoRetained ? 'Sim' : 'Não'}</p>
             </div>
           </div>
         </CardContent>
