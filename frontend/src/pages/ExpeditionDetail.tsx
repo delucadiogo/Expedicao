@@ -266,26 +266,6 @@ export default function ExpeditionDetail() {
             </CardContent>
           </Card>
 
-          {expedition.rejection && (
-            <Card className="print:mb-1">
-              <CardHeader className="print:py-1 print:px-1">
-                <CardTitle className="print:text-sm print:mb-0">Informações de Rejeição</CardTitle>
-              </CardHeader>
-              <CardContent className="print:p-1">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 print:gap-x-1 print:gap-y-0.5">
-                  {renderField('Motivo', expedition.rejection.reason)}
-                  {renderField('Enviado para Suprimentos', expedition.rejection.sentToSupplies ? 'Sim' : 'Não', CheckCircle)}
-                  {renderDateField('Data/Hora Suprimentos', expedition.rejection.suppliesDateTime, Calendar)}
-                  {renderField('Responsável Suprimentos', expedition.rejection.suppliesResponsible, User)}
-                  {renderField('Carga Retida', expedition.rejection.cargoRetained ? 'Sim' : 'Não', XCircle)}
-                  {renderField('Quantidade Retida', expedition.rejection.retainedQuantity, Scale)}
-                  {renderField('Local de Retenção', expedition.rejection.retentionLocation, MapPin)}
-                  {renderField('Ações Corretivas', expedition.rejection.correctiveActions)}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           {/* Seções de Assinatura */}
           <div className="mt-8 print:mt-1 print:mb-0">
             <div className="border-t pt-8 print:pt-1">
