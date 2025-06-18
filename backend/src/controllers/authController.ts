@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import knex from '../database/knex';
 import { RegisterRequest, LoginRequest, AuthUser } from '../types/auth';
+import * as z from 'zod';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -11,9 +12,26 @@ if (!JWT_SECRET) {
 }
 const ALLOWED_EMAIL_DOMAINS = process.env.ALLOWED_EMAIL_DOMAINS ? process.env.ALLOWED_EMAIL_DOMAINS.split(',').map(d => d.trim()) : [];
 
+// Schemas de validação com zod
+const registerSchema = z.object({
+  username: z.string().min(1, 'Nome de usuário é obrigatório'),
+  email: z.string().email('E-mail inválido'),
+  password: z.string().min(8, 'A senha deve ter pelo menos 8 caracteres'),
+  roleName: z.enum(['expedição', 'qualidade', 'suprimentos', 'admin'])
+});
+
+const loginSchema = z.object({
+  email: z.string().email('E-mail inválido'),
+  password: z.string().min(1, 'Senha é obrigatória')
+});
+
 export const register = async (req: Request, res: Response) => {
   try {
-    const { username, email, password, roleName } = req.body as RegisterRequest;
+    const parseResult = registerSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({ message: 'Dados inválidos', errors: parseResult.error.errors });
+    }
+    const { username, email, password, roleName } = parseResult.data;
 
     if (!username || !email || !password || !roleName) {
       return res.status(400).json({ message: 'Por favor, preencha todos os campos obrigatórios.' });
@@ -94,7 +112,11 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body as LoginRequest;
+    const parseResult = loginSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({ message: 'Dados inválidos', errors: parseResult.error.errors });
+    }
+    const { email, password } = parseResult.data;
 
     if (!email || !password) {
       return res.status(400).json({ message: 'Por favor, preencha todos os campos.' });
